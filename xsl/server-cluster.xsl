@@ -79,7 +79,7 @@
 									<xsl:choose>
 										<xsl:when test="boolean($REPLICATION_FILTER) and $REPLICATION_FILTER != ''">
 											<xsl:attribute name="filter">
-											<xsl:value-of select="'.*\.gif|.*\.js|.*\.jpeg|.*\.jpg|.*\.png|.*\.htm|.*\.html|.*\.css|.*\.txt'" />
+											<xsl:value-of select="$REPLICATION_FILTER" />
 											</xsl:attribute>
 										</xsl:when>
 										<xsl:otherwise>
