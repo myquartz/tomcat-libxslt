@@ -7,6 +7,10 @@ else
 	echo "<Context></Context>" > context-output.xml
 fi
 
+if [ -e "server-orig.xml" ]; then
+	cp -f server-orig.xml server-output.xml
+fi
+
 #LDAP Realm for context
 if [ "$LDAP_URL" != "" -a -e "context-ldap-realm.xsl" ]; then	
 	echo "Creating context ldap-realm for $LDAP_URL"
