@@ -50,7 +50,7 @@ elif [ "$GLOBAL_DB_SOURCENAME" != "" -a "$DB_CLASS" != "" -a "$DB_URL" != "" -a 
 fi
 
 #TCP Simple Cluster
-if [ "$CLUSTER" == "DeltaManager" -o "$CLUSTER" == "BackupManager" ]; then
+if [ "$CLUSTER" = "DeltaManager" -o "$CLUSTER" = "BackupManager" ]; then
   if [ -e "server-cluster.xsl" ]; then
 	echo "Creating Cluster of $CLUSTER"
 	xsltproc --param CHANNEL_SEND_OPTIONS "'$CHANNEL_SEND_OPTIONS'" --param CLUSTER "'$CLUSTER'" --param MCAST_ADDRESS "'${MCAST_ADDRESS:-228.0.0.4}'" --param MCAST_PORT "'${MCAST_PORT:-45564}'" --param RECEIVE_PORT "'${RECEIVE_PORT:-5000}'" --param REPLICATION_FILTER "'$REPLICATION_FILTER'" server-cluster.xsl server-output.xml > server-temp.xml 
@@ -64,7 +64,7 @@ if [ -e "context-output.xml" ]; then
 fi
 
 if [ -e "server-output.xml" ]; then
-	mv server-output.xml conf/server.xml 
+	mv -f server-output.xml conf/server.xml 
 fi
 
 #exec bash
