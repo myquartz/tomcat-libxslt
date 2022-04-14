@@ -2,13 +2,6 @@
 
 echo Build tomcat images with libxslt or xsltproc
 
-#my registry: REGISTRY_URL=registry.esi.vn:5000 REGISTRY_USER=gitlab REGISTRY_PASSWORD=Demoesi2021
-
-if [ "$REGISTRY_URL" != "" ]
-then
-        docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASSWORD" "$REGISTRY_URL"
-fi
-
 for t in 8.5-jdk8 8.5-jdk11 8.5-jdk8-slim 8.5-jdk8-openjdk-slim-bullseye 8.5-jdk8-corretto 8.5-jdk11-corretto 8.5-jdk11-openjdk-slim-bullseye 9-jdk11 9-jdk11-slim 9-jdk11-openjdk-slim 9-jdk11-openjdk-slim-bullseye 9-jdk11-corretto
 do
 
@@ -37,6 +30,54 @@ LABEL maintainer="thachanh@esi.vn"
 
 RUN $INSTALL_CMD
 
+ADD scripts/catalina-run.sh /usr/local/tomcat/bin
+ADD xsl/context-ldap-realm.xsl /usr/local/tomcat/
+ADD xsl/server-ldap-realm.xsl /usr/local/tomcat/
+ADD xsl/context-db-realm.xsl /usr/local/tomcat/
+ADD xsl/server-db-realm.xsl /usr/local/tomcat/
+ADD xsl/context-dbsource.xsl /usr/local/tomcat/
+ADD xsl/server-dbsource.xsl /usr/local/tomcat/
+ADD xsl/server-cluster.xsl /usr/local/tomcat/
+
+RUN cp /usr/local/tomcat/conf/server.xml /usr/local/tomcat/server-orig.xml && chmod +x /usr/local/tomcat/bin/catalina-run.sh
+
+ENV DEPLOY_CONTEXT=
+
+ENV DB_SOURCENAME=
+ENV DB_CLASS=
+ENV DB_URL=
+ENV DB_USERNAME=
+ENV DB_PASSWORD=
+
+ENV GLOBAL_LDAP_URL=
+ENV LDAP_URL=
+ENV LDAP_BIND=
+ENV LDAP_BIND_PASSWORD=
+ENV LDAP_USER_BASEDN=
+ENV LDAP_USER_SEARCH=
+ENV LDAP_USER_PASSWD_ATTR=
+ENV LDAP_USER_PATTERN=
+ENV LDAP_GROUP_BASEDN=
+ENV LDAP_GROUP_SEARCH=
+ENV LDAP_GROUP_ATTR=
+
+ENV REALM_USERTAB=
+ENV REALM_ROLETAB=
+ENV REALM_USERCOL=
+ENV REALM_CREDCOL=
+ENV REALM_ROLECOL=
+ENV REALM_ROLECOL=
+
+ENV ALL_ROLES_MODE=
+
+ENV CLUSTER=
+ENV MCAST_ADDRESS=
+ENV MCAST_PORT=
+ENV RECEIVE_PORT=
+ENV REPLICATION_FILTER=
+
+CMD ["catalina-run.sh"]
+
 EOF
 
 if [ "$IMAGE_TAG1" != "" ]; then
@@ -55,8 +96,3 @@ fi
 done
 
 rm -f Dockerfile
-
-if [ "$REGISTRY_URL" != "" ]; then
-        docker logout $REGISTRY_URL
-fi
-
