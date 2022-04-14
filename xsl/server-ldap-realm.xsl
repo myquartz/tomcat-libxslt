@@ -26,7 +26,14 @@
 			<xsl:for-each select="Server/attribute::*">
 				<xsl:copy-of select="." />
 			</xsl:for-each>
-			<xsl:for-each select="Server/child::*">
+			<xsl:copy-of select="Server/Listener" />
+			<xsl:copy-of select="Server/GlobalNamingResources" />
+			
+			<Service>
+			<xsl:for-each select="Server/Service/attribute::*">
+				<xsl:copy-of select="." />
+			</xsl:for-each>
+			<xsl:for-each select="Server/Service/child::*">
 				<xsl:choose>
 					<xsl:when test="name() = 'Engine'">
 						<Engine>
@@ -56,6 +63,7 @@
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:for-each>
+			</Service>
 		</Server>
 	</xsl:template>
 

@@ -31,7 +31,7 @@ if [ "$DB_SOURCENAME" != "" -a "$DB_CLASS" != "" -a "$DB_URL" != "" -a -e "conte
 	#DataSource Realm for context
 	if [ "$REALM_USERTAB" != "" -a -e "context-db-realm.xsl" ]; then
 		echo "Creating context db-realm for $DB_SOURCENAME"
-		xsltproc --param DB_SOURCENAME "'$DB_SOURCENAME'" --param REALM_USERTAB "'$REALM_USERTAB'" --param REALM_ROLETAB "'$REALM_ROLETAB'" --param REALM_USERCOL "'${REALM_USERCOL:-username}'" --param REALM_CREDCOL "'${REALM_CREDCOL:-hashpassword}'" --param REALM_ROLECOL "'$REALM_ROLECOL'" --param ALL_ROLES_MODE "'${ALL_ROLES_MODE:-strict}'" --param ALL_ROLES_MODE "'${ALL_ROLES_MODE:-strict}'" --param LOCAL_DS "'true'" context-db-realm.xsl context-output.xml > context-temp.xml
+		xsltproc --param DB_SOURCENAME "'$DB_SOURCENAME'" --param REALM_USERTAB "'$REALM_USERTAB'" --param REALM_ROLETAB "'$REALM_ROLETAB'" --param REALM_USERCOL "'${REALM_USERCOL:-username}'" --param REALM_CREDCOL "'${REALM_CREDCOL:-hashpassword}'" --param REALM_ROLECOL "'$REALM_ROLECOL'" --param ALL_ROLES_MODE "'${ALL_ROLES_MODE:-strict}'" --param LOCAL_DS "'true'" context-db-realm.xsl context-output.xml > context-temp.xml
 		[ -s context-temp.xml ] && mv -f context-temp.xml context-output.xml
 	fi
 
@@ -43,12 +43,12 @@ elif [ "$GLOBAL_DB_SOURCENAME" != "" -a "$DB_CLASS" != "" -a "$DB_URL" != "" -a 
 	#Global DataSource Realm for context
 	if [ "$REALM_USERTAB" != "" -a -e "context-db-realm.xsl" ]; then	
 		echo "Creating db-realm for $DB_SOURCENAME"
-		xsltproc --param DB_SOURCENAME "'$GLOBAL_DB_SOURCENAME'" --param REALM_USERTAB "'$REALM_USERTAB'" --param REALM_ROLETAB "'$REALM_ROLETAB'" --param REALM_USERCOL "'${REALM_USERCOL:-username}'" --param REALM_CREDCOL "'${REALM_CREDCOL:-hashpassword}'" --param REALM_ROLECOL "'$REALM_ROLECOL'" --param ALL_ROLES_MODE "'${ALL_ROLES_MODE:-strict}'" --param ALL_ROLES_MODE "'${ALL_ROLES_MODE:-strict}'" --param LOCAL_DS "'false'" context-db-realm.xsl context-output.xml > context-temp.xml
+		xsltproc --param DB_SOURCENAME "'$GLOBAL_DB_SOURCENAME'" --param REALM_USERTAB "'$REALM_USERTAB'" --param REALM_ROLETAB "'$REALM_ROLETAB'" --param REALM_USERCOL "'${REALM_USERCOL:-username}'" --param REALM_CREDCOL "'${REALM_CREDCOL:-hashpassword}'" --param REALM_ROLECOL "'$REALM_ROLECOL'" --param ALL_ROLES_MODE "'${ALL_ROLES_MODE:-strict}'" --param LOCAL_DS "'false'" context-db-realm.xsl context-output.xml > context-temp.xml
 		[ -s context-temp.xml ] && mv -f context-temp.xml context-output.xml
 	#or DataSource Realm for global
 	elif [ "$REALM_USERTAB" != "" -a -e "server-db-realm.xsl" ]; then	
 		echo "Creating ldap-realm for $GLOBAL_LDAP_URL"
-		xsltproc --param DB_SOURCENAME "'$GLOBAL_DB_SOURCENAME'" --param REALM_USERTAB "'$REALM_USERTAB'" --param REALM_ROLETAB "'$REALM_ROLETAB'" --param REALM_USERCOL "'${REALM_USERCOL:-username}'" --param REALM_CREDCOL "'${REALM_CREDCOL:-hashpassword}'" --param REALM_ROLECOL "'$REALM_ROLECOL'" --param ALL_ROLES_MODE "'${ALL_ROLES_MODE:-strict}'" --param ALL_ROLES_MODE "'${ALL_ROLES_MODE:-strict}'" --param LOCAL_DS "'false'" server-db-realm.xsl server-output.xml > server-temp.xml 
+		xsltproc --param DB_SOURCENAME "'$GLOBAL_DB_SOURCENAME'" --param REALM_USERTAB "'$REALM_USERTAB'" --param REALM_ROLETAB "'$REALM_ROLETAB'" --param REALM_USERCOL "'${REALM_USERCOL:-username}'" --param REALM_CREDCOL "'${REALM_CREDCOL:-hashpassword}'" --param REALM_ROLECOL "'$REALM_ROLECOL'" --param ALL_ROLES_MODE "'${ALL_ROLES_MODE:-strict}'" --param LOCAL_DS "'false'" server-db-realm.xsl server-output.xml > server-temp.xml 
 		[ -s server-temp.xml ] && mv -f server-temp.xml server-output.xml
 	fi
 fi
