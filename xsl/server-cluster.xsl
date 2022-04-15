@@ -10,6 +10,8 @@
 	<xsl:param name="MCAST_ADDRESS" />
 	<xsl:param name="MCAST_PORT" />
 	<xsl:param name="MCAST_BIND" />
+	<xsl:param name="HOSTNAME" />
+	<xsl:param name="REPLICAS" />
 	<xsl:param name="RECEIVE_PORT" />
 	<xsl:param name="REPLICATION_FILTER" />
 	<xsl:param name="LOCAL_DS" />
@@ -56,21 +58,94 @@
 								</xsl:choose>
 								
 							    <Channel className="org.apache.catalina.tribes.group.GroupChannel">
-									<Membership className="org.apache.catalina.tribes.membership.McastService"
-										frequency="500"
-										dropTime="3000">
-										<xsl:attribute name="address">
-											<xsl:value-of select="$MCAST_ADDRESS" />
-										</xsl:attribute>
-										<xsl:attribute name="port">
-											<xsl:value-of select="$MCAST_PORT" />
-										</xsl:attribute>
-										<xsl:if test="boolean($MCAST_BIND) and $MCAST_BIND != ''">
-                     <xsl:attribute name="bind">
-											<xsl:value-of select="$MCAST_BIND" />
-										</xsl:attribute>
-										</xsl:if>
-									</Membership>
+                  <xsl:choose>
+										<xsl:when test="boolean($MCAST_ADDRESS) and $MCAST_ADDRESS != ''">
+													<Membership className="org.apache.catalina.tribes.membership.McastService"
+														frequency="500"
+														dropTime="3000">
+														<xsl:attribute name="address">
+															<xsl:value-of select="$MCAST_ADDRESS" />
+														</xsl:attribute>
+														<xsl:attribute name="port">
+															<xsl:value-of select="$MCAST_PORT" />
+														</xsl:attribute>
+														<xsl:if test="boolean($MCAST_BIND) and $MCAST_BIND != ''">
+														 <xsl:attribute name="bind">
+															<xsl:value-of select="$MCAST_BIND" />
+														</xsl:attribute>
+														</xsl:if>
+													</Membership>
+                  </xsl:when>
+									<xsl:otherwise>
+														 <Membership className="org.apache.catalina.tribes.membership.StaticMembershipService">
+															 <Member className="org.apache.catalina.tribes.membership.StaticMember"
+																					port="4004">
+																<xsl:attribute name="host">
+																	<xsl:value-of select="concat(substring($HOSTNAME,1,string-length($HOSTNAME)-1),'1')" />
+																</xsl:attribute>
+																<xsl:attribute name="uniqueId">
+																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','1','}')" />
+																</xsl:attribute>
+															</Member>
+															<xsl:if test="number($REPLICAS) &gt 1">
+															<Member className="org.apache.catalina.tribes.membership.StaticMember"
+																					port="4004">
+																<xsl:attribute name="host">
+																	<xsl:value-of select="concat(substring($HOSTNAME,1,string-length($HOSTNAME)-1),'2')" />
+																</xsl:attribute>
+																<xsl:attribute name="uniqueId">
+																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','2','}')" />
+																</xsl:attribute>
+															</Member>
+															</xsl:if>
+															<xsl:if test="number($REPLICAS) &gt 2">
+															<Member className="org.apache.catalina.tribes.membership.StaticMember"
+																					port="4004">
+																<xsl:attribute name="host">
+																	<xsl:value-of select="concat(substring($HOSTNAME,1,string-length($HOSTNAME)-1),'3')" />
+																</xsl:attribute>
+																<xsl:attribute name="uniqueId">
+																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','3','}')" />
+																</xsl:attribute>
+															</Member>
+															</xsl:if>
+															<xsl:if test="number($REPLICAS) &gt 3">
+															<Member className="org.apache.catalina.tribes.membership.StaticMember"
+																					port="4004">
+																<xsl:attribute name="host">
+																	<xsl:value-of select="concat(substring($HOSTNAME,1,string-length($HOSTNAME)-1),'4')" />
+																</xsl:attribute>
+																<xsl:attribute name="uniqueId">
+																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','4','}')" />
+																</xsl:attribute>
+															</Member>
+															</xsl:if>
+															<xsl:if test="number($REPLICAS) &gt 4">
+															<Member className="org.apache.catalina.tribes.membership.StaticMember"
+																					port="4004">
+																<xsl:attribute name="host">
+																	<xsl:value-of select="concat(substring($HOSTNAME,1,string-length($HOSTNAME)-1),'5')" />
+																</xsl:attribute>
+																<xsl:attribute name="uniqueId">
+																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','5','}')" />
+																</xsl:attribute>
+															</Member>
+															</xsl:if>
+															<xsl:if test="number($REPLICAS) &gt 5">
+															<Member className="org.apache.catalina.tribes.membership.StaticMember"
+																					port="4004">
+																<xsl:attribute name="host">
+																	<xsl:value-of select="concat(substring($HOSTNAME,1,string-length($HOSTNAME)-1),'6')" />
+																</xsl:attribute>
+																<xsl:attribute name="uniqueId">
+																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','6','}')" />
+																</xsl:attribute>
+															</Member>
+															</xsl:if>
+														 </Membership>
+								 			</xsl:otherwise>
+									</xsl:choose>
+
 									<Receiver className="org.apache.catalina.tribes.transport.nio.NioReceiver"
 										address="auto"
 										selectorTimeout="100"
