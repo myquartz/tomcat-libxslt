@@ -17,11 +17,11 @@ IMAGE_TAG2="$PRIV_REGISTRY/tomcat-xslt:$t"
 fi
 
 if [[ "$t" == *"alpine" ]]; then
-INSTALL_CMD='apk add --no-cache libxslt curl'
+INSTALL_CMD='apk add --no-cache libxslt curl net-tools'
 elif [[ "$t" == *"corretto" ]]; then
-INSTALL_CMD='yum -y update && yum install -y libxslt && yum clean all'
+INSTALL_CMD='yum -y update && yum install -y libxslt net-tools && yum clean all'
 else
-INSTALL_CMD='apt-get update && apt-get -y upgrade && apt-get install -y xsltproc curl && rm -rf /var/lib/apt/lists/*'
+INSTALL_CMD='apt-get update && apt-get -y upgrade && apt-get install -y xsltproc curl net-tools && rm -rf /var/lib/apt/lists/*'
 fi
 
 envsubst > Dockerfile <<EOF
