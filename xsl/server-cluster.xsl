@@ -9,6 +9,7 @@
 	<xsl:param name="CLUSTER" />
 	<xsl:param name="MCAST_ADDRESS" />
 	<xsl:param name="MCAST_PORT" />
+	<xsl:param name="MCAST_BIND" />
 	<xsl:param name="RECEIVE_PORT" />
 	<xsl:param name="REPLICATION_FILTER" />
 	<xsl:param name="LOCAL_DS" />
@@ -64,6 +65,11 @@
 										<xsl:attribute name="port">
 											<xsl:value-of select="$MCAST_PORT" />
 										</xsl:attribute>
+										<xsl:if test="boolean($MCAST_BIND) and $MCAST_BIND != ''">
+                     <xsl:attribute name="bind">
+											<xsl:value-of select="$MCAST_BIND" />
+										</xsl:attribute>
+										</xsl:if>
 									</Membership>
 									<Receiver className="org.apache.catalina.tribes.transport.nio.NioReceiver"
 										address="auto"

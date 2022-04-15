@@ -57,7 +57,7 @@ fi
 if [ "$CLUSTER" = "DeltaManager" -o "$CLUSTER" = "BackupManager" ]; then
   if [ -e "server-cluster.xsl" ]; then
 	echo "Creating Cluster of $CLUSTER"
-	xsltproc --param CHANNEL_SEND_OPTIONS "'$CHANNEL_SEND_OPTIONS'" --param CLUSTER "'$CLUSTER'" --param MCAST_ADDRESS "'${MCAST_ADDRESS:-228.0.0.4}'" --param MCAST_PORT "'${MCAST_PORT:-45564}'" --param RECEIVE_PORT "'${RECEIVE_PORT:-5000}'" --param REPLICATION_FILTER "'$REPLICATION_FILTER'" server-cluster.xsl server-output.xml > server-temp.xml 
+	xsltproc --param CHANNEL_SEND_OPTIONS "'$CHANNEL_SEND_OPTIONS'" --param CLUSTER "'$CLUSTER'" --param MCAST_ADDRESS "'${MCAST_ADDRESS:-228.0.0.4}'" --param MCAST_PORT "'${MCAST_PORT:-45564}'" --param MCAST_BIND "'${MCAST_BIND}'" --param RECEIVE_PORT "'${RECEIVE_PORT:-5000}'" --param REPLICATION_FILTER "'$REPLICATION_FILTER'" server-cluster.xsl server-output.xml > server-temp.xml 
 	[ -s server-temp.xml ] && mv -f server-temp.xml server-output.xml
   fi
 fi
