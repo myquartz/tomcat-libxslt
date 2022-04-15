@@ -2,7 +2,7 @@
 
 echo Build tomcat images with libxslt or xsltproc
 
-for t in 8.5-jdk8 8.5-jdk11 8.5-jdk8-slim 8.5-jdk8-openjdk-slim-bullseye 8.5-jdk8-corretto 8.5-jdk11-corretto 8.5-jdk11-openjdk-slim-bullseye 9-jdk11 9-jdk11-slim 9-jdk11-openjdk-slim 9-jdk11-openjdk-slim-bullseye 9-jdk11-corretto
+for t in 8.5-jdk8 8.5-jdk11 8.5-jdk8-slim 8.5-jdk8-openjdk-slim-bullseye 8.5-jdk8-corretto 8.5-jdk11-corretto 8.5-jdk11-openjdk-slim-bullseye 9-jdk11 9-jdk11-slim 9-jdk11-openjdk-slim 9-jdk11-corretto
 do
 
 echo Building $t
