@@ -62,9 +62,9 @@ if [ "$CLUSTER" = "DeltaManager" -o "$CLUSTER" = "BackupManager" ]; then
   fi
 fi
 
-if [ -e "context-output.xml" ]; then
+if [ "$DEPLOY_CONTEXT" != "" -a -e "context-output.xml" ]; then
 	mkdir -p conf/Catalina/localhost
-	mv context-output.xml conf/Catalina/localhost/${DEPLOY_CONTEXT:-ROOT}.xml 
+	mv context-output.xml conf/Catalina/localhost/$DEPLOY_CONTEXT.xml 
 fi
 
 if [ -e "server-output.xml" ]; then
