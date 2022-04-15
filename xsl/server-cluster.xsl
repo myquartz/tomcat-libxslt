@@ -79,7 +79,7 @@
 									<xsl:otherwise>
 														 <Membership className="org.apache.catalina.tribes.membership.StaticMembershipService">
 															 <!-- <Member className="org.apache.catalina.tribes.membership.StaticMember"
-																					port="4004">
+																					">
 																<xsl:attribute name="host">
 																	<xsl:value-of select="concat(substring($HOSTNAME,1,string-length($HOSTNAME)-1),'1')" />
 																</xsl:attribute>
@@ -87,8 +87,7 @@
 																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','1','}')" />
 																</xsl:attribute>
 															</Member> -->
-															<LocalMember className="org.apache.catalina.tribes.membership.StaticMember"
-																					port="4004">
+															<LocalMember className="org.apache.catalina.tribes.membership.StaticMember">
 																<xsl:attribute name="host">
 																	<xsl:value-of select="$HOSTNAME" />
 																</xsl:attribute>
@@ -97,68 +96,80 @@
 																</xsl:attribute>
 															</LocalMember>
 															<xsl:if test="number($REPLICAS) &gt; 1 and substring($HOSTNAME,string-length($HOSTNAME),1) != '1'">
-															<Member className="org.apache.catalina.tribes.membership.StaticMember"
-																					port="4004">
+															<Member className="org.apache.catalina.tribes.membership.StaticMember">
 																<xsl:attribute name="host">
 																	<xsl:value-of select="concat(substring($HOSTNAME,1,string-length($HOSTNAME)-1),'1')" />
 																</xsl:attribute>
 																<xsl:attribute name="uniqueId">
 																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','1','}')" />
 																</xsl:attribute>
+																<xsl:attribute name="port">
+																	<xsl:value-of select="$RECEIVE_PORT" />
+																</xsl:attribute>
 															</Member>
 															</xsl:if>
 															<xsl:if test="number($REPLICAS) &gt; 1 and substring($HOSTNAME,string-length($HOSTNAME),1) != '2'">
-															<Member className="org.apache.catalina.tribes.membership.StaticMember"
-																					port="4004">
+															<Member className="org.apache.catalina.tribes.membership.StaticMember">
 																<xsl:attribute name="host">
 																	<xsl:value-of select="concat(substring($HOSTNAME,1,string-length($HOSTNAME)-1),'2')" />
 																</xsl:attribute>
 																<xsl:attribute name="uniqueId">
 																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','2','}')" />
 																</xsl:attribute>
+																<xsl:attribute name="port">
+																	<xsl:value-of select="$RECEIVE_PORT" />
+																</xsl:attribute>
 															</Member>
 															</xsl:if>
 															<xsl:if test="number($REPLICAS) &gt; 2 and substring($HOSTNAME,string-length($HOSTNAME),1) != '3'">
-															<Member className="org.apache.catalina.tribes.membership.StaticMember"
-																					port="4004">
+															<Member className="org.apache.catalina.tribes.membership.StaticMember">
 																<xsl:attribute name="host">
 																	<xsl:value-of select="concat(substring($HOSTNAME,1,string-length($HOSTNAME)-1),'3')" />
 																</xsl:attribute>
 																<xsl:attribute name="uniqueId">
 																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','3','}')" />
 																</xsl:attribute>
+																<xsl:attribute name="port">
+																	<xsl:value-of select="$RECEIVE_PORT" />
+																</xsl:attribute>
 															</Member>
 															</xsl:if>
 															<xsl:if test="number($REPLICAS) &gt; 3 and substring($HOSTNAME,string-length($HOSTNAME),1) != '4'">
-															<Member className="org.apache.catalina.tribes.membership.StaticMember"
-																					port="4004">
+															<Member className="org.apache.catalina.tribes.membership.StaticMember">
 																<xsl:attribute name="host">
 																	<xsl:value-of select="concat(substring($HOSTNAME,1,string-length($HOSTNAME)-1),'4')" />
 																</xsl:attribute>
 																<xsl:attribute name="uniqueId">
 																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','4','}')" />
 																</xsl:attribute>
+																<xsl:attribute name="port">
+																	<xsl:value-of select="$RECEIVE_PORT" />
+																</xsl:attribute>
 															</Member>
 															</xsl:if>
 															<xsl:if test="number($REPLICAS) &gt; 4 and substring($HOSTNAME,string-length($HOSTNAME),1) != '5'">
-															<Member className="org.apache.catalina.tribes.membership.StaticMember"
-																					port="4004">
+															<Member className="org.apache.catalina.tribes.membership.StaticMember">
 																<xsl:attribute name="host">
 																	<xsl:value-of select="concat(substring($HOSTNAME,1,string-length($HOSTNAME)-1),'5')" />
 																</xsl:attribute>
 																<xsl:attribute name="uniqueId">
 																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','5','}')" />
 																</xsl:attribute>
+																<xsl:attribute name="port">
+																	<xsl:value-of select="$RECEIVE_PORT" />
+																</xsl:attribute>
 															</Member>
 															</xsl:if>
 															<xsl:if test="number($REPLICAS) &gt; 5 and substring($HOSTNAME,string-length($HOSTNAME),1) != '6'">
-															<Member className="org.apache.catalina.tribes.membership.StaticMember"
-																					port="4004">
+															<Member className="org.apache.catalina.tribes.membership.StaticMember">
 																<xsl:attribute name="host">
 																	<xsl:value-of select="concat(substring($HOSTNAME,1,string-length($HOSTNAME)-1),'6')" />
 																</xsl:attribute>
 																<xsl:attribute name="uniqueId">
 																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','6','}')" />
+																</xsl:attribute>
+																<xsl:attribute name="port">
+																	<xsl:value-of select="$RECEIVE_PORT" />
 																</xsl:attribute>
 															</Member>
 															</xsl:if>
