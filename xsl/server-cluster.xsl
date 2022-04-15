@@ -87,7 +87,7 @@
 																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','1','}')" />
 																</xsl:attribute>
 															</Member>
-															<xsl:if test="number($REPLICAS) &gt 1">
+															<xsl:if test="number($REPLICAS) &gt; 1">
 															<Member className="org.apache.catalina.tribes.membership.StaticMember"
 																					port="4004">
 																<xsl:attribute name="host">
@@ -98,7 +98,7 @@
 																</xsl:attribute>
 															</Member>
 															</xsl:if>
-															<xsl:if test="number($REPLICAS) &gt 2">
+															<xsl:if test="number($REPLICAS) &gt; 2">
 															<Member className="org.apache.catalina.tribes.membership.StaticMember"
 																					port="4004">
 																<xsl:attribute name="host">
@@ -109,7 +109,7 @@
 																</xsl:attribute>
 															</Member>
 															</xsl:if>
-															<xsl:if test="number($REPLICAS) &gt 3">
+															<xsl:if test="number($REPLICAS) &gt; 3">
 															<Member className="org.apache.catalina.tribes.membership.StaticMember"
 																					port="4004">
 																<xsl:attribute name="host">
@@ -120,7 +120,7 @@
 																</xsl:attribute>
 															</Member>
 															</xsl:if>
-															<xsl:if test="number($REPLICAS) &gt 4">
+															<xsl:if test="number($REPLICAS) &gt; 4">
 															<Member className="org.apache.catalina.tribes.membership.StaticMember"
 																					port="4004">
 																<xsl:attribute name="host">
@@ -131,7 +131,7 @@
 																</xsl:attribute>
 															</Member>
 															</xsl:if>
-															<xsl:if test="number($REPLICAS) &gt 5">
+															<xsl:if test="number($REPLICAS) &gt; 5">
 															<Member className="org.apache.catalina.tribes.membership.StaticMember"
 																					port="4004">
 																<xsl:attribute name="host">
