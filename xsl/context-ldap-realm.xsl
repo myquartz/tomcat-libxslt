@@ -7,14 +7,17 @@
 
 	<xsl:param name="LDAP_URL" />
 	<xsl:param name="LDAP_ALT_URL" />
+	<xsl:param name="LDAP_SEARCHASUSER" />
 	<xsl:param name="LDAP_BIND" />
 	<xsl:param name="LDAP_BIND_PASSWORD" />
 	<xsl:param name="LDAP_USER_BASEDN" />
+	<xsl:param name="LDAP_USER_SUBTREE" />
 	<xsl:param name="LDAP_USER_SEARCH" />
 	<xsl:param name="LDAP_USER_PASSWD_ATTR" />
 	<xsl:param name="LDAP_USER_ROLE_ATTR" />
 	<xsl:param name="LDAP_USER_PATTERN" />
 	<xsl:param name="LDAP_GROUP_BASEDN" />
+	<xsl:param name="LDAP_GROUP_SUBTREE" />
 	<xsl:param name="LDAP_GROUP_SEARCH" />
 	<xsl:param name="LDAP_GROUP_ATTR" />
 	<xsl:param name="COMMON_ROLE" />
@@ -62,6 +65,12 @@
 			</xsl:if>
 			
 			<xsl:if
+				test="boolean($LDAP_SEARCHASUSER) and $LDAP_SEARCHASUSER != ''">
+				<xsl:attribute name="userSearchAsUser">
+					<xsl:value-of select="$LDAP_SEARCHASUSER" />
+				</xsl:attribute>
+			</xsl:if>
+			<xsl:if
 				test="boolean($LDAP_BIND) and $LDAP_BIND != ''">
 				<xsl:attribute name="connectionName">
 					<xsl:value-of select="$LDAP_BIND" />
@@ -77,6 +86,12 @@
 				test="boolean($LDAP_USER_BASEDN) and $LDAP_USER_BASEDN != ''">
 				<xsl:attribute name="userBase">
 					<xsl:value-of select="$LDAP_USER_BASEDN" />
+				</xsl:attribute>
+			</xsl:if>
+			<xsl:if
+				test="boolean($LDAP_USER_SUBTREE) and $LDAP_USER_SUBTREE != ''">
+				<xsl:attribute name="userSubtree">
+					<xsl:value-of select="$LDAP_USER_SUBTREE" />
 				</xsl:attribute>
 			</xsl:if>
 			<xsl:if
@@ -107,6 +122,12 @@
 				test="boolean($LDAP_GROUP_BASEDN) and $LDAP_GROUP_BASEDN != ''">
 				<xsl:attribute name="roleBase">
 					<xsl:value-of select="$LDAP_GROUP_BASEDN" />
+				</xsl:attribute>
+			</xsl:if>
+			<xsl:if
+				test="boolean($LDAP_GROUP_SUBTREE) and $LDAP_GROUP_SUBTREE != ''">
+				<xsl:attribute name="roleSubtree">
+					<xsl:value-of select="$LDAP_GROUP_SUBTREE" />
 				</xsl:attribute>
 			</xsl:if>
 			<xsl:if
