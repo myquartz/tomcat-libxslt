@@ -38,6 +38,9 @@
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:for-each>
+      <xsl:if test="not(/Context/Realm)">
+						<xsl:call-template name="add_realm" />
+      </xsl:if>
 		</Context>
 	</xsl:template>
 

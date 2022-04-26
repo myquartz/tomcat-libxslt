@@ -1,9 +1,20 @@
 #!/bin/sh
 
+if [ -e "webapps/$DEPLOY_CONTEXT.war" ]; then
+#Extract context.xml from webapps
+	jar -xf webapps/$DEPLOY_CONTEXT.war META-INF/context.xml
+elif [ -e "webapps/ROOT.war" ]; then
+#Extract context.xml from ROOT.war
+	jar -xf webapps/ROOT.war META-INF/context.xml
+fi
+
+if [ -e "META-INF/context.xml" ]; then
+	cp META-INF/context.xml context-output.xml
+elif [ -e "context.xml" ]; then
 #No context template, use a default
-if [ -e "context.xml" ]; then
 	cp context.xml context-output.xml
 else
+#Empty context
 	echo "<Context></Context>" > context-output.xml
 fi
 
