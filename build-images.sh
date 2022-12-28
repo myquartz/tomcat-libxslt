@@ -1,8 +1,13 @@
 #!/bin/sh
 
 echo Build tomcat images with libxslt or xsltproc
+LIST=$1
 
-for t in 8.5-jdk8 8.5-jdk11 8.5-jdk8-temurin-focal 8.5-jdk8-slim 8.5-jdk8-openjdk-slim-bullseye 8.5-jdk8-corretto 8.5-jdk11-corretto 8.5-jdk11-openjdk-slim-bullseye 8.5-jdk11-temurin-focal 9-jdk11 9-jdk11-slim 9-jdk11-openjdk-slim 9-jdk11-corretto 9-jdk11-temurin-focal 9-jdk17-corretto 9-jdk17-temurin-focal 10.0-jdk11-temurin-focal 10.0-jdk11-corretto 10.0-jdk17-temurin-focal 10.0-jdk17-corretto
+if [ "$LIST" = "" ]; then
+LIST="-8.5-jdk8 8.5-jdk11 8.5-jdk8-temurin-focal 8.5-jdk8-slim 8.5-jdk8-openjdk-slim-bullseye 8.5-jdk8-corretto 8.5-jdk11-corretto 8.5-jdk11-openjdk-slim-bullseye 8.5-jdk11-temurin-focal 9-jdk11 9-jdk11-slim 9-jdk11-openjdk-slim 9-jdk11-corretto 9-jdk11-temurin-focal 9-jdk17-corretto 9-jdk17-temurin-focal 10.0-jdk11-temurin-focal 10.0-jdk11-corretto 10.0-jdk17-temurin-focal 10.0-jdk17-corretto"
+fi
+
+for t in $LIST
 do
 
 echo Building $t
@@ -89,6 +94,7 @@ EOF
 
 if [ "$IMAGE_TAG1" != "" ]; then
         docker build --pull -t "$IMAGE_TAG" -t "$IMAGE_TAG1" .
+        docker build --platform linux/arm64 --pull -t "$IMAGE_TAG" -t "$IMAGE_TAG1" .
         docker tag "$IMAGE_TAG" "$IMAGE_TAG1"
         [ "PUSH" = "yes" ] && docker push "$IMAGE_TAG1"
 else
