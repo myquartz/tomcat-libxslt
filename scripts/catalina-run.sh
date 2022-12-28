@@ -73,6 +73,15 @@ if [ "$CLUSTER" = "DeltaManager" -o "$CLUSTER" = "BackupManager" ]; then
   fi
 fi
 
+#Tomcat Port manipulation
+if [ "$TOMCAT_HTTP_PORT" != "" -o "$TOMCAT_HTTPS_PORT" != ""  -o "$TOMCAT_AJP_PORT" != "" ]; then
+  if [ -e "server-cluster.xsl" ]; then
+	echo "Changing Ports: HTTP $TOMCAT_HTTP_PORT HTTPS $TOMCAT_HTTPS_PORT AJP $TOMCAT_AJP_PORT"
+	xsltproc --param TOMCAT_HTTP_PORT "'${TOMCAT_HTTP_PORT:-8080}'" --param TOMCAT_HTTPS_PORT "'${TOMCAT_HTTPS_PORT}'" --param TOMCAT_AJP_PORT "'${TOMCAT_AJP_PORT}'" --param CONNECTOR_MAX_THREADS "'${CONNECTOR_MAX_THREADS}'" server-port.xsl server-output.xml > server-temp.xml 
+	[ -s server-temp.xml ] && mv -f server-temp.xml server-output.xml
+  fi
+fi
+
 if [ "$DEPLOY_CONTEXT" != "" -a -e "context-output.xml" ]; then
 	mkdir -p conf/Catalina/localhost
 	mv context-output.xml conf/Catalina/localhost/$DEPLOY_CONTEXT.xml 

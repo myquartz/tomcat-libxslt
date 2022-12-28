@@ -2,7 +2,7 @@
 
 echo Build tomcat images with libxslt or xsltproc
 
-for t in 8.5-jdk8 8.5-jdk11 8.5-jdk8-slim 8.5-jdk8-openjdk-slim-bullseye 8.5-jdk8-corretto 8.5-jdk11-corretto 8.5-jdk11-openjdk-slim-bullseye 9-jdk11 9-jdk11-slim 9-jdk11-openjdk-slim 9-jdk11-corretto
+for t in 8.5-jdk8 8.5-jdk11 8.5-jdk8-temurin-focal 8.5-jdk8-slim 8.5-jdk8-openjdk-slim-bullseye 8.5-jdk8-corretto 8.5-jdk11-corretto 8.5-jdk11-openjdk-slim-bullseye 8.5-jdk11-temurin-focal 9-jdk11 9-jdk11-slim 9-jdk11-openjdk-slim 9-jdk11-corretto 9-jdk11-temurin-focal 9-jdk17-corretto 9-jdk17-temurin-focal 10.0-jdk11-temurin-focal 10.0-jdk11-corretto 10.0-jdk17-temurin-focal 10.0-jdk17-corretto
 do
 
 echo Building $t
@@ -38,6 +38,7 @@ ADD xsl/server-db-realm.xsl /usr/local/tomcat/
 ADD xsl/context-dbsource.xsl /usr/local/tomcat/
 ADD xsl/server-dbsource.xsl /usr/local/tomcat/
 ADD xsl/server-cluster.xsl /usr/local/tomcat/
+ADD xsl/server-port.xsl /usr/local/tomcat/
 
 RUN cp /usr/local/tomcat/conf/server.xml /usr/local/tomcat/server-orig.xml && chmod +x /usr/local/tomcat/bin/catalina-run.sh
 
@@ -75,6 +76,12 @@ ENV MCAST_ADDRESS=
 ENV MCAST_PORT=
 ENV RECEIVE_PORT=
 ENV REPLICATION_FILTER=
+ENV CHANNEL_SEND_OPTIONS=
+
+ENV TOMCAT_HTTP_PORT=
+ENV TOMCAT_HTTPS_PORT=
+ENV TOMCAT_AJP_PORT=
+ENV CONNECTOR_MAX_THREADS=
 
 CMD ["catalina-run.sh"]
 
@@ -83,16 +90,15 @@ EOF
 if [ "$IMAGE_TAG1" != "" ]; then
         docker build --pull -t "$IMAGE_TAG" -t "$IMAGE_TAG1" .
         docker tag "$IMAGE_TAG" "$IMAGE_TAG1"
-        docker push "$IMAGE_TAG1"
+        [ "PUSH" = "yes" ] && docker push "$IMAGE_TAG1"
 else
         docker build -t "$IMAGE_TAG" .
 fi
 
 if [ "$IMAGE_TAG2" != "" ]; then
         docker tag "$IMAGE_TAG" "$IMAGE_TAG2"
-        docker push "$IMAGE_TAG2"
+        [ "PUSH" = "yes" ] && docker push "$IMAGE_TAG2"
 fi
-
 done
 
 rm -f Dockerfile

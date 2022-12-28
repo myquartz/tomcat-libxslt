@@ -76,6 +76,16 @@
 														</xsl:if>
 													</Membership>
                   </xsl:when>
+									<xsl:when test="number($REPLICAS) &lt;= 1">
+										  <LocalMember className="org.apache.catalina.tribes.membership.StaticMember">
+												<xsl:attribute name="host">
+													<xsl:value-of select="$HOSTNAME" />
+												</xsl:attribute>
+												<xsl:attribute name="uniqueId">
+													<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,',substring($HOSTNAME,string-length($HOSTNAME),1),'}')" />
+												</xsl:attribute>
+											</LocalMember>
+									</xsl:when>
 									<xsl:otherwise>
 														 <Membership className="org.apache.catalina.tribes.membership.StaticMembershipService">
 															 <!-- <Member className="org.apache.catalina.tribes.membership.StaticMember"
