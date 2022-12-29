@@ -93,17 +93,17 @@ CMD ["catalina-run.sh"]
 EOF
 
 if [ "$IMAGE_TAG1" != "" ]; then
-        docker build --pull -t "$IMAGE_TAG" -t "$IMAGE_TAG1" .
-        docker build --platform linux/arm64 --pull -t "$IMAGE_TAG" -t "$IMAGE_TAG1" .
+        [ "$ARM" = "" ] && docker build --pull -t "$IMAGE_TAG" -t "$IMAGE_TAG1" .
+        [ "$ARM" = "yes" ] && docker build --platform linux/arm64 --pull -t "$IMAGE_TAG" -t "$IMAGE_TAG1" .
         docker tag "$IMAGE_TAG" "$IMAGE_TAG1"
-        [ "PUSH" = "yes" ] && docker push "$IMAGE_TAG1"
+        [ "$PUSH" = "yes" ] && docker push "$IMAGE_TAG1"
 else
         docker build -t "$IMAGE_TAG" .
 fi
 
 if [ "$IMAGE_TAG2" != "" ]; then
         docker tag "$IMAGE_TAG" "$IMAGE_TAG2"
-        [ "PUSH" = "yes" ] && docker push "$IMAGE_TAG2"
+        [ "$PUSH" = "yes" ] && docker push "$IMAGE_TAG2"
 fi
 done
 
