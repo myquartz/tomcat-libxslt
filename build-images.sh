@@ -93,9 +93,9 @@ CMD ["catalina-run.sh"]
 EOF
 
 if [ "$IMAGE_TAG2" != "" ]; then
-        docker buildx build --platform ${BUILD_PLATFORM:-linux/amd64,linux/arm64} --push -t "$IMAGE_TAG2" -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
+        docker buildx build --push --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG2" -t "$IMAGE_TAG1" .
 elif [ "$IMAGE_TAG1" != "" ]; then
-        docker buildx build --platform ${BUILD_PLATFORM:-linux/amd64,linux/arm64} --push -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
+        docker buildx build --push --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
 else
 	docker build -t "$IMAGE_TAG" .
 fi
