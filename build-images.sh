@@ -16,13 +16,13 @@ do
 
 echo Building $t
 
-IMAGE_TAG="tomcat-xslt:$t"
+IMAGE_TAG="${MY_DOCKER_REGISTRY}tomcat-xslt:$t"
 
 if [ "$REGISTRY_URL" != "" ]; then
 IMAGE_TAG1="$REGISTRY_URL/tomcat-xslt:$t"
 fi
-if [ "$PRIV_REGISTRY" != "" ]; then
-IMAGE_TAG2="$PRIV_REGISTRY/tomcat-xslt:$t"
+if [ "$REGISTRY_URL2" != "" ]; then
+IMAGE_TAG2="$REGISTRY_URL2/tomcat-xslt:$t"
 fi
 
 if [[ "$t" == *"alpine" ]]; then
@@ -97,12 +97,12 @@ CMD ["catalina-run.sh"]
 EOF
 
 if [ "$IMAGE_TAG2" != "" ]; then
-        docker buildx build $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG2" -t "$IMAGE_TAG1" .
+        docker buildx build $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG2" -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
 elif [ "$IMAGE_TAG1" != "" ]; then
-        docker buildx build --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
-				[ "$PUSH" = "yes" ] && docker push "$IMAGE_TAG1"
+        docker buildx build $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
 else
 	docker build -t "$IMAGE_TAG" .
+	[ "$PUSH" = "yes" ] && docker push "$IMAGE_TAG"
 fi
 done
 
