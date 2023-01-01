@@ -7,6 +7,10 @@ if [ "$LIST" = "" ]; then
 LIST="8.5-jdk8 8.5-jdk11 8.5-jdk8-temurin-focal 8.5-jdk8-slim 8.5-jdk8-openjdk-slim-bullseye 8.5-jdk8-corretto 8.5-jdk11-corretto 8.5-jdk11-openjdk-slim-bullseye 8.5-jdk11-temurin-focal 9-jdk11 9-jdk11-slim 9-jdk11-openjdk-slim 9-jdk11-corretto 9-jdk11-temurin-focal 9-jdk17-corretto 9-jdk17-temurin-focal 10.0-jdk11-temurin-focal 10.0-jdk11-corretto 10.0-jdk17-temurin-focal 10.0-jdk17-corretto"
 fi
 
+if [ "$PUSH" = "yes" ]; then
+PUSH_OPT="--push"
+fi
+
 for t in $LIST
 do
 
@@ -93,9 +97,10 @@ CMD ["catalina-run.sh"]
 EOF
 
 if [ "$IMAGE_TAG2" != "" ]; then
-        docker buildx build --push --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG2" -t "$IMAGE_TAG1" .
+        docker buildx build $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG2" -t "$IMAGE_TAG1" .
 elif [ "$IMAGE_TAG1" != "" ]; then
-        docker buildx build --push --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
+        docker buildx build --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
+				[ "$PUSH" = "yes" ] && docker push "$IMAGE_TAG1"
 else
 	docker build -t "$IMAGE_TAG" .
 fi
