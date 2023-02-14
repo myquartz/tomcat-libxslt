@@ -1,10 +1,12 @@
 #!/bin/sh
 
+echo catalina-run.sh starting
+
 if [ -e "webapps/$DEPLOY_CONTEXT.war" ]; then
-#Extract context.xml from webapps
+echo Extract context.xml from webapps/$DEPLOY_CONTEXT.war
 	jar -xf webapps/$DEPLOY_CONTEXT.war META-INF/context.xml
 elif [ -e "webapps/ROOT.war" ]; then
-#Extract context.xml from ROOT.war
+echo Extract context.xml from webapps/ROOT.war
 	jar -xf webapps/ROOT.war META-INF/context.xml
 fi
 
@@ -14,7 +16,7 @@ elif [ -e "context.xml" ]; then
 #No context template, use a default
 	cp context.xml context-output.xml
 else
-#Empty context
+echo Empty context-output.xml
 	echo "<Context></Context>" > context-output.xml
 fi
 
@@ -36,6 +38,7 @@ fi
 
 #Context DB Source
 if [ "$DB_SOURCENAME" != "" -a "$DB_CLASS" != "" -a "$DB_URL" != "" -a -e "context-dbsource.xsl" ]; then	
+	echo "Merging context DB Resource for $DB_SOURCENAME"
 	xsltproc --param DB_SOURCENAME "'$DB_SOURCENAME'" --param db_class \"$DB_CLASS\" --param db_url \"$DB_URL\" --param db_username \"$DB_USERNAME\" --param db_password \"$DB_PASSWORD\" --param db_pool_max \"${DB_POOL_MAX:-50}\" --param db_pool_init \"${DB_POOL_INIT:-0}\" --param db_idle_max \"${DB_IDLE_MAX:-5}\" --param validation_query \"$DB_VALIDATION_QUERY\" context-dbsource.xsl context-output.xml > context-temp.xml
 	[ -s context-temp.xml ] && mv -f context-temp.xml context-output.xml
 	
@@ -47,6 +50,7 @@ if [ "$DB_SOURCENAME" != "" -a "$DB_CLASS" != "" -a "$DB_URL" != "" -a -e "conte
 	fi
 
 elif [ "$GLOBAL_DB_SOURCENAME" != "" -a "$DB_CLASS" != "" -a "$DB_URL" != "" -a -e "server-dbsource.xsl" ]; then
+	echo "Merging Global DB Resource for $GLOBAL_DB_SOURCENAME"
 #Global DB Source
 	xsltproc --param DB_SOURCENAME "'$GLOBAL_DB_SOURCENAME'" --param db_class \"$DB_CLASS\" --param db_url \"$DB_URL\" --param db_username \"$DB_USERNAME\" --param db_password \"$DB_PASSWORD\" --param db_pool_max \"${DB_POOL_MAX:-50}\" --param db_pool_init \"${DB_POOL_INIT:-0}\" --param db_idle_max \"${DB_IDLE_MAX:-5}\" --param validation_query \"$DB_VALIDATION_QUERY\" server-dbsource.xsl server-output.xml > server-temp.xml 
 	[ -s server-temp.xml ] && cp -f server-temp.xml server-output.xml
@@ -67,8 +71,18 @@ fi
 #TCP Simple Cluster
 if [ "$CLUSTER" = "DeltaManager" -o "$CLUSTER" = "BackupManager" ]; then
   if [ -e "server-cluster.xsl" ]; then
-	echo "Creating Cluster of $CLUSTER"
-	xsltproc --param CHANNEL_SEND_OPTIONS "'$CHANNEL_SEND_OPTIONS'" --param CLUSTER "'$CLUSTER'" --param MCAST_ADDRESS "'${MCAST_ADDRESS}'" --param MCAST_PORT "'${MCAST_PORT:-45564}'" --param MCAST_BIND "'${MCAST_BIND}'" --param HOSTNAME "'${HOSTNAME}'" --param REPLICAS "'${REPLICAS:-2}'" --param RECEIVE_PORT "'${RECEIVE_PORT:-5000}'" --param REPLICATION_FILTER "'$REPLICATION_FILTER'" server-cluster.xsl server-output.xml > server-temp.xml 
+  if [ "$MCAST_ADDRESS" != "" ]; then
+		echo "Creating Cluster of $CLUSTER Multi-cast=$MCAST_ADDRESS"
+		xsltproc --param CHANNEL_SEND_OPTIONS "'$CHANNEL_SEND_OPTIONS'" --param CLUSTER "'$CLUSTER'" --param RECEIVE_PORT "'${RECEIVE_PORT:-5000}'" --param REPLICATION_FILTER "'$REPLICATION_FILTER'" --param MCAST_ADDRESS "'${MCAST_ADDRESS}'" --param MCAST_PORT "'${MCAST_PORT:-45564}'" --param MCAST_BIND "'${MCAST_BIND}'" server-cluster.xsl server-output.xml > server-temp.xml 
+  elif [ "$DNS_MEMBERSHIP_SERVICE_NAME" != "" -o "$KUBERNETES_NAMESPACE" != "" -o "$OPENSHIFT_KUBE_PING_NAMESPACE" != "" ]; then
+		echo "Creating Cluster of $CLUSTER Kubernes=$KUBERNETES_NAMESPACE or $OPENSHIFT_KUBE_PING_NAMESPACE, DNS=$DNS_MEMBERSHIP_SERVICE_NAME"
+		xsltproc --param CHANNEL_SEND_OPTIONS "'$CHANNEL_SEND_OPTIONS'" --param CLUSTER "'$CLUSTER'" --param RECEIVE_PORT "'${RECEIVE_PORT:-5001}'" --param REPLICATION_FILTER "'$REPLICATION_FILTER'" --param KUBERNETES_NAMESPACE "'$KUBERNETES_NAMESPACE'" --param OPENSHIFT_KUBE_PING_NAMESPACE "'$OPENSHIFT_KUBE_PING_NAMESPACE'" --param DNS_MEMBERSHIP_SERVICE_NAME "'$DNS_MEMBERSHIP_SERVICE_NAME'" server-cluster.xsl server-output.xml > server-temp.xml 
+  elif [[ $HOSTNAME =~ "[1-6]$" ]]; then
+		echo "Creating Cluster of $CLUSTER static Replicas=$REPLICAS for $HOSTNAME"
+		xsltproc --param CHANNEL_SEND_OPTIONS "'$CHANNEL_SEND_OPTIONS'" --param CLUSTER "'$CLUSTER'" --param HOSTNAME "'${HOSTNAME}'" --param REPLICAS "'${REPLICAS:-2}'" --param RECEIVE_PORT "'${RECEIVE_PORT:-5002}'" --param REPLICATION_FILTER "'$REPLICATION_FILTER'" server-cluster.xsl server-output.xml > server-temp.xml 
+  else
+    echo "Can not create cluster because not match requirement"
+  fi
 	[ -s server-temp.xml ] && mv -f server-temp.xml server-output.xml
   fi
 fi
