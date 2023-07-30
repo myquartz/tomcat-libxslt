@@ -26,6 +26,10 @@ fi
 
 #LDAP Realm for context
 if [ "$LDAP_URL" != "" -a -e "context-ldap-realm.xsl" ]; then	
+  if [ "$LDAP_BIND_PASSWORD" = "" -a "$LDAP_BIND_PASSWORD_FILE" != "" ]; then
+    echo "Reading LDAP Bind password from $LDAP_BIND_PASSWORD_FILE"
+    LDAP_BIND_PASSWORD=`cat "$LDAP_BIND_PASSWORD_FILE"`
+  fi
 	echo "Creating context ldap-realm for $LDAP_URL"
 	xsltproc --param LDAP_URL "'$LDAP_URL'" --param LDAP_ALT_URL "'$LDAP_ALT_URL'" --param LDAP_BIND "'$LDAP_BIND'" --param LDAP_BIND_PASSWORD "'$LDAP_BIND_PASSWORD'" --param LDAP_USER_BASEDN "'$LDAP_USER_BASEDN'" --param LDAP_USER_SEARCH "'$LDAP_USER_SEARCH'" --param LDAP_USER_PASSWD_ATTR "'$LDAP_USER_PASSWD_ATTR'" --param LDAP_USER_PATTERN "'$LDAP_USER_PATTERN'"  --param LDAP_GROUP_BASEDN "'$LDAP_GROUP_BASEDN'" --param LDAP_GROUP_SEARCH "'$LDAP_GROUP_SEARCH'" --param LDAP_GROUP_ATTR "'$LDAP_GROUP_ATTR'" --param AD_COMPAT "'$AD_COMPAT'" --param COMMON_ROLE "'$COMMON_ROLE'" --param ALL_ROLES_MODE "'${ALL_ROLES_MODE:-strict}'" --param LDAP_SEARCHASUSER "'$LDAP_SEARCHASUSER'" --param LDAP_USER_SUBTREE "'$LDAP_USER_SUBTREE'" --param LDAP_GROUP_SUBTREE "'$LDAP_GROUP_SUBTREE'" context-ldap-realm.xsl context-output.xml > context-temp.xml
 	[ -s context-temp.xml ] && mv -f context-temp.xml context-output.xml
@@ -38,6 +42,10 @@ fi
 
 #Context DB Source
 if [ "$DB_SOURCENAME" != "" -a "$DB_CLASS" != "" -a "$DB_URL" != "" -a -e "context-dbsource.xsl" ]; then	
+  if [ "$DB_PASSWORD" = "" -a "$DB_PASSWORD_FILE" != "" ]; then
+    echo "Reading database password from $DB_PASSWORD_FILE"
+    DB_PASSWORD=`cat "$DB_PASSWORD_FILE"`
+  fi
 	echo "Merging context DB Resource for $DB_SOURCENAME"
 	xsltproc --param DB_SOURCENAME "'$DB_SOURCENAME'" --param db_class \"$DB_CLASS\" --param db_url \"$DB_URL\" --param db_username \"$DB_USERNAME\" --param db_password \"$DB_PASSWORD\" --param db_pool_max \"${DB_POOL_MAX:-50}\" --param db_pool_init \"${DB_POOL_INIT:-0}\" --param db_idle_max \"${DB_IDLE_MAX:-5}\" --param validation_query \"$DB_VALIDATION_QUERY\" context-dbsource.xsl context-output.xml > context-temp.xml
 	[ -s context-temp.xml ] && mv -f context-temp.xml context-output.xml
@@ -50,6 +58,10 @@ if [ "$DB_SOURCENAME" != "" -a "$DB_CLASS" != "" -a "$DB_URL" != "" -a -e "conte
 	fi
 
 elif [ "$GLOBAL_DB_SOURCENAME" != "" -a "$DB_CLASS" != "" -a "$DB_URL" != "" -a -e "server-dbsource.xsl" ]; then
+  if [ "$DB_PASSWORD" = "" -a "$DB_PASSWORD_FILE" != "" ]; then
+    echo "Reading database password from $DB_PASSWORD_FILE"
+    DB_PASSWORD=`cat "$DB_PASSWORD_FILE"`
+  fi
 	echo "Merging Global DB Resource for $GLOBAL_DB_SOURCENAME"
 #Global DB Source
 	xsltproc --param DB_SOURCENAME "'$GLOBAL_DB_SOURCENAME'" --param db_class \"$DB_CLASS\" --param db_url \"$DB_URL\" --param db_username \"$DB_USERNAME\" --param db_password \"$DB_PASSWORD\" --param db_pool_max \"${DB_POOL_MAX:-50}\" --param db_pool_init \"${DB_POOL_INIT:-0}\" --param db_idle_max \"${DB_IDLE_MAX:-5}\" --param validation_query \"$DB_VALIDATION_QUERY\" server-dbsource.xsl server-output.xml > server-temp.xml 
