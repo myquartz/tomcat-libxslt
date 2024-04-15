@@ -7,6 +7,9 @@
 
 	<xsl:param name="CHANNEL_SEND_OPTIONS" />
 	<xsl:param name="CLUSTER" />
+	<xsl:param name="DNS_MEMBERSHIP_SERVICE_NAME" />
+	<xsl:param name="OPENSHIFT_KUBE_PING_NAMESPACE" />
+	<xsl:param name="KUBERNETES_NAMESPACE" />
 	<xsl:param name="MCAST_ADDRESS" />
 	<xsl:param name="MCAST_PORT" />
 	<xsl:param name="MCAST_BIND" />
@@ -59,6 +62,14 @@
 								
 							    <Channel className="org.apache.catalina.tribes.group.GroupChannel">
                   <xsl:choose>
+										<xsl:when test="boolean($DNS_MEMBERSHIP_SERVICE_NAME) and $DNS_MEMBERSHIP_SERVICE_NAME != ''">
+											<Membership className="org.apache.catalina.tribes.membership.cloud.CloudMembershipService"
+												membershipProviderClassName="dns" />
+										</xsl:when>
+										<xsl:when test="(boolean($OPENSHIFT_KUBE_PING_NAMESPACE) and $OPENSHIFT_KUBE_PING_NAMESPACE != '') or (boolean($KUBERNETES_NAMESPACE) and $KUBERNETES_NAMESPACE != '')">
+											<Membership className="org.apache.catalina.tribes.membership.cloud.CloudMembershipService"
+												membershipProviderClassName="kubernetes" />
+										</xsl:when>
 										<xsl:when test="boolean($MCAST_ADDRESS) and $MCAST_ADDRESS != ''">
 													<Membership className="org.apache.catalina.tribes.membership.McastService"
 														frequency="500"
