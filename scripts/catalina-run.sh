@@ -73,6 +73,12 @@ if [ "$CLUSTER" = "DeltaManager" -o "$CLUSTER" = "BackupManager" ]; then
   fi
 fi
 
+#CDI enable (9.x or 10x)
+if [ "$CDI_ENABLE" != "" -a -e "server-cdi.xsl" ]; then
+	xsltproc --param CDI_ENABLE "'$CDI_ENABLE'" server-cdi.xsl server-output.xml > server-temp.xml 
+	[ -s server-temp.xml ] && mv -f server-temp.xml server-output.xml
+fi
+
 #Tomcat Port manipulation
 if [ "$TOMCAT_HTTP_PORT" != "" -o "$TOMCAT_HTTPS_PORT" != ""  -o "$TOMCAT_AJP_PORT" != "" ]; then
   if [ -e "server-cluster.xsl" ]; then

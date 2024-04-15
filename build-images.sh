@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-echo Build tomcat images with libxslt or xsltproc
+echo Build tomcat images with libxslt or xsltproc, CDI 2 and CXF support for 9 and above
 LIST=$1
 
 if [ "$LIST" = "" ]; then
@@ -11,19 +11,14 @@ if [ "$PUSH" = "yes" ]; then
 PUSH_OPT="--push"
 fi
 
+#echo "Loading tomcat source from GitHub"
+#
+#docker run --rm -it -v tomcatwork:/root maven:3.8 bash -c "mkdir -p /root/tomcat-src && cd /root/tomcat-src && git clone https://github.com/apache/tomcat.git"
+
 for t in $LIST
 do
 
 echo Building $t
-
-IMAGE_TAG="${MY_DOCKER_REGISTRY}tomcat-xslt:$t"
-
-if [ "$REGISTRY_URL" != "" ]; then
-IMAGE_TAG1="$REGISTRY_URL/tomcat-xslt:$t"
-fi
-if [ "$REGISTRY_URL2" != "" ]; then
-IMAGE_TAG2="$REGISTRY_URL2/tomcat-xslt:$t"
-fi
 
 if [[ "$t" == *"alpine" ]]; then
 INSTALL_CMD='apk add --no-cache libxslt curl net-tools'
@@ -33,11 +28,43 @@ else
 INSTALL_CMD='apt-get update && apt-get -y upgrade && apt-get install -y xsltproc curl net-tools && rm -rf /var/lib/apt/lists/*'
 fi
 
+for cdi in "no" "yes"; do
+if [ "$cdi" == "yes" ]; then
+if [[ "$t" == "9"* ]]; then
+	VER=9.0.x
+elif [[ "$t" == "10.0"* ]]; then
+	VER=10.0.x
+elif [[ "$t" == "10.1"* ]]; then
+	VER=10.1.x
+fi
+else
+	VER=
+fi
+
+if [ "$VER" != "" ]; then
 envsubst > Dockerfile <<EOF
+FROM maven:3.8 AS builder
+LABEL maintainer="thachanh@esi.vn"
+WORKDIR /root
+VOLUME /root
+RUN mkdir -p /root/tomcat-src && cd /root/tomcat-src && git clone https://github.com/apache/tomcat.git
+RUN --mount=type=cache,target=/root/.m2 cd /root/tomcat-src/tomcat && git checkout $VER && mvn install -f modules/owb && mvn install -f modules/cxf
+EOF
+COPY_CDI_FILES="COPY --from=builder /root/tomcat-src/tomcat/modules/owb/target/tomcat-owb-*.jar /usr/local/tomcat/lib/"
+ADD_CDI_SCRIPT="ADD xsl/server-cdi.xsl /usr/local/tomcat/"
+COPY_CXF_FILES="COPY --from=builder /root/tomcat-src/tomcat/modules/cxf/target/tomcat-cxf-*.jar /usr/local/tomcat/lib/"
+else
+echo "" > Dockerfile
+fi
+
+envsubst >> Dockerfile <<EOF
 FROM tomcat:$t
 LABEL maintainer="thachanh@esi.vn"
 
 RUN $INSTALL_CMD
+
+$COPY_CDI_FILES
+$COPY_CXF_FILES
 
 ADD scripts/catalina-run.sh /usr/local/tomcat/bin
 ADD xsl/context-ldap-realm.xsl /usr/local/tomcat/
@@ -48,6 +75,7 @@ ADD xsl/context-dbsource.xsl /usr/local/tomcat/
 ADD xsl/server-dbsource.xsl /usr/local/tomcat/
 ADD xsl/server-cluster.xsl /usr/local/tomcat/
 ADD xsl/server-port.xsl /usr/local/tomcat/
+$ADD_CDI_SCRIPT
 
 RUN cp /usr/local/tomcat/conf/server.xml /usr/local/tomcat/server-orig.xml && chmod +x /usr/local/tomcat/bin/catalina-run.sh
 
@@ -87,6 +115,8 @@ ENV RECEIVE_PORT=
 ENV REPLICATION_FILTER=
 ENV CHANNEL_SEND_OPTIONS=
 
+ENV CDI_ENABLE=
+
 ENV TOMCAT_HTTP_PORT=
 ENV TOMCAT_HTTPS_PORT=
 ENV TOMCAT_AJP_PORT=
@@ -96,6 +126,22 @@ CMD ["catalina-run.sh"]
 
 EOF
 
+TAG=$t
+if [ "$VER" != "" ]; then
+	ALT=-cdi
+else
+	ALT=
+fi
+
+IMAGE_TAG="${MY_DOCKER_REGISTRY}tomcat-xslt$ALT:$TAG"
+
+if [ "$REGISTRY_URL" != "" ]; then
+IMAGE_TAG1="$REGISTRY_URL/tomcat-xslt$ALT:$TAG"
+fi
+if [ "$REGISTRY_URL2" != "" ]; then
+IMAGE_TAG2="$REGISTRY_URL2/tomcat-xslt$ALT:$TAG"
+fi
+
 if [ "$IMAGE_TAG2" != "" ]; then
         docker buildx build $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG2" -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
 elif [ "$IMAGE_TAG1" != "" ]; then
@@ -104,6 +150,7 @@ else
 	docker build -t "$IMAGE_TAG" .
 	[ "$PUSH" = "yes" ] && docker push "$IMAGE_TAG"
 fi
+done
 done
 
 rm -f Dockerfile
