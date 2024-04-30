@@ -52,16 +52,21 @@ fi
 
 if [ "$VER" != "" ]; then
 envsubst > Dockerfile <<EOF
+FROM bitnami/git:latest AS source
+
+WORKDIR /opt
+RUN mkdir -p /opt/tomcat-src && cd /opt/tomcat-src && git clone https://github.com/apache/tomcat.git
+
 FROM maven:3-eclipse-temurin-11 AS builder
 LABEL maintainer="thachanh@esi.vn"
 WORKDIR /root
 VOLUME /root
-RUN mkdir -p /root/tomcat-src && cd /root/tomcat-src && git clone https://github.com/apache/tomcat.git
-RUN --mount=type=cache,target=/root/.m2 cd /root/tomcat-src/tomcat && git checkout $VER && mvn install -f modules/owb && mvn install -f modules/cxf
+COPY --from=source /opt/tomcat-src/tomcat /root/tomcat
+RUN --mount=type=cache,target=/root/.m2 cd /root/tomcat && git checkout $VER && mvn install -f modules/owb && mvn install -f modules/cxf
 EOF
-COPY_CDI_FILES="COPY --from=builder /root/tomcat-src/tomcat/modules/owb/target/tomcat-owb-*.jar /usr/local/tomcat/lib/"
+COPY_CDI_FILES="COPY --from=builder /root/tomcat/modules/owb/target/tomcat-owb-*.jar /usr/local/tomcat/lib/"
 ADD_CDI_SCRIPT="ADD xsl/server-cdi.xsl /usr/local/tomcat/"
-COPY_CXF_FILES="COPY --from=builder /root/tomcat-src/tomcat/modules/cxf/target/tomcat-cxf-*.jar /usr/local/tomcat/lib/"
+COPY_CXF_FILES="COPY --from=builder /root/tomcat/modules/cxf/target/tomcat-cxf-*.jar /usr/local/tomcat/lib/"
 else
 echo "" > Dockerfile
 fi
