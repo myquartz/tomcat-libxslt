@@ -3,11 +3,12 @@
 echo catalina-run.sh starting
 
 if [ -e "webapps/$DEPLOY_CONTEXT.war" ]; then
-echo Extract context.xml from webapps/$DEPLOY_CONTEXT.war
+	echo Extract context.xml from webapps/$DEPLOY_CONTEXT.war
 	jar -xf webapps/$DEPLOY_CONTEXT.war META-INF/context.xml
 elif [ -e "webapps/ROOT.war" ]; then
-echo Extract context.xml from webapps/ROOT.war
+	echo Extract context.xml from webapps/ROOT.war
 	jar -xf webapps/ROOT.war META-INF/context.xml
+	DEPLOY_CONTEXT=ROOT
 fi
 
 if [ -e "META-INF/context.xml" ]; then
