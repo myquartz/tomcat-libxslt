@@ -13,6 +13,11 @@
 	<xsl:param name="REALM_ROLECOL" />
 	<xsl:param name="LOCAL_DS" />
 	<xsl:param name="ALL_ROLES_MODE" />
+  <!-- MessageDigest configuration -->
+	<xsl:param name="REALM_ALGORITHM" />
+	<xsl:param name="REALM_INTERATIONS" />
+	<xsl:param name="REALM_SALT_LENGTH" />
+	<xsl:param name="REALM_ENCODING" />
 
 	<xsl:template match="/">
 		<Context>
@@ -87,6 +92,34 @@
 				</xsl:attribute>
 			</xsl:if>
 			
+			<xsl:if test="(boolean($REALM_ALGORITHM) and $REALM_ALGORITHM != '') or (boolean($REALM_INTERATIONS) and $REALM_INTERATIONS != '')">
+			<CredentialHandler className="org.apache.catalina.realm.MessageDigestCredentialHandler">
+			<xsl:if
+				test="boolean($REALM_ALGORITHM) and $REALM_ALGORITHM != ''">
+				<xsl:attribute name="algorithm">
+					<xsl:value-of select="$REALM_ALGORITHM" />
+				</xsl:attribute>
+			</xsl:if>
+			<xsl:if
+				test="boolean($REALM_INTERATIONS) and $REALM_INTERATIONS != ''">
+				<xsl:attribute name="interations">
+					<xsl:value-of select="$REALM_INTERATIONS" />
+				</xsl:attribute>
+			</xsl:if>
+			<xsl:if
+				test="boolean($REALM_SALT_LENGTH) and $REALM_SALT_LENGTH != ''">
+				<xsl:attribute name="saltLength">
+					<xsl:value-of select="$REALM_SALT_LENGTH" />
+				</xsl:attribute>
+			</xsl:if>
+			<xsl:if
+				test="boolean($REALM_ENCODING) and $REALM_ENCODING != ''">
+				<xsl:attribute name="encoding">
+					<xsl:value-of select="$REALM_ENCODING" />
+				</xsl:attribute>
+			</xsl:if>
+			</CredentialHandler>
+			</xsl:if>
 		</Realm>
 	</xsl:template>
 </xsl:stylesheet>
