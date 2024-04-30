@@ -2,13 +2,22 @@
 
 echo Build tomcat images with libxslt or xsltproc, CDI 2 and CXF support for 9 and above
 LIST=$1
+CDILIST=$2
 
 if [ "$LIST" = "" ]; then
 LIST="8.5-jdk8 8.5-jdk11 8.5-jdk8-temurin-focal 8.5-jdk8-slim 8.5-jdk8-openjdk-slim-bullseye 8.5-jdk8-corretto 8.5-jdk11-corretto 8.5-jdk11-openjdk-slim-bullseye 8.5-jdk11-temurin-focal 9-jdk11 9-jdk11-slim 9-jdk11-openjdk-slim 9-jdk11-corretto 9-jdk11-temurin-focal 9-jdk17-corretto 9-jdk17-temurin-focal 10.0-jdk11-temurin-focal 10.0-jdk11-corretto 10.0-jdk17-temurin-focal 10.0-jdk17-corretto"
 fi
 
+if [ "$CDILIST" = "" ]; then
+CDILIST="no yes"
+fi
+
 if [ "$PUSH" = "yes" ]; then
 PUSH_OPT="--push"
+fi
+
+if [ "$QUIET" != "" ]; then
+QUIET_OPT="--quiet"
 fi
 
 #echo "Loading tomcat source from GitHub"
@@ -28,7 +37,7 @@ else
 INSTALL_CMD='apt-get update && apt-get -y upgrade && apt-get install -y xsltproc curl net-tools && rm -rf /var/lib/apt/lists/*'
 fi
 
-for cdi in "no" "yes"; do
+for cdi in $CDILIST; do
 if [ "$cdi" == "yes" ]; then
 if [[ "$t" == "9"* ]]; then
 	VER=9.0.x
@@ -43,7 +52,7 @@ fi
 
 if [ "$VER" != "" ]; then
 envsubst > Dockerfile <<EOF
-FROM maven:3.8 AS builder
+FROM maven:3-eclipse-temurin-11 AS builder
 LABEL maintainer="thachanh@esi.vn"
 WORKDIR /root
 VOLUME /root
@@ -145,9 +154,9 @@ IMAGE_TAG2="$REGISTRY_URL2/tomcat-xslt$ALT:$TAG"
 fi
 
 if [ "$IMAGE_TAG2" != "" ]; then
-        docker buildx build $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG2" -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
+        docker buildx build $QUIET_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG2" -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
 elif [ "$IMAGE_TAG1" != "" ]; then
-        docker buildx build $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
+        docker buildx build $QUIET_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
 else
 	docker build -t "$IMAGE_TAG" .
 	[ "$PUSH" = "yes" ] && docker push "$IMAGE_TAG"
