@@ -39,8 +39,14 @@ fi
 
 for cdi in $CDILIST; do
 if [ "$cdi" == "yes" ]; then
+MAVEN_TAG=3-eclipse-temurin-11
+JD1=-Dmaven.compiler.source=11
+JD2=-Dmaven.compiler.target=11
 if [[ "$t" == "9"* ]]; then
 	VER=9.0.x
+  MAVEN_TAG=3.8-eclipse-temurin-8
+  JD1=-Dmaven.compiler.source=1.8
+  JD2=-Dmaven.compiler.target=1.8
 elif [[ "$t" == "10.0"* ]]; then
 	VER=10.0.x
 elif [[ "$t" == "10.1"* ]]; then
@@ -51,27 +57,26 @@ else
 fi
 
 if [ "$VER" != "" ]; then
-envsubst > Dockerfile <<EOF
-FROM bitnami/git:latest AS source
 
-WORKDIR /opt
-RUN mkdir -p /opt/tomcat-src && cd /opt/tomcat-src && git clone https://github.com/apache/tomcat.git
+SRC_DIR=`pwd`/../tomcat-src/
+mkdir -p $SRC_DIR
 
-FROM maven:3-eclipse-temurin-11 AS builder
-LABEL maintainer="thachanh@esi.vn"
-WORKDIR /root
-VOLUME /root
-COPY --from=source /opt/tomcat-src/tomcat /root/tomcat
-RUN --mount=type=cache,target=/root/.m2 cd /root/tomcat && git checkout $VER && mvn install -f modules/owb && mvn install -f modules/cxf
-EOF
-COPY_CDI_FILES="COPY --from=builder /root/tomcat/modules/owb/target/tomcat-owb-*.jar /usr/local/tomcat/lib/"
-ADD_CDI_SCRIPT="ADD xsl/server-cdi.xsl /usr/local/tomcat/"
-COPY_CXF_FILES="COPY --from=builder /root/tomcat/modules/cxf/target/tomcat-cxf-*.jar /usr/local/tomcat/lib/"
-else
-echo "" > Dockerfile
+if [ ! -e "$SRC_DIR/tomcat" ]; then
+docker run --rm -v $SRC_DIR:/opt/tomcat-src maven:$MAVEN_TAG sh -c "cd /opt/tomcat-src && git clone https://github.com/apache/tomcat.git"
 fi
 
-envsubst >> Dockerfile <<EOF
+docker run --rm -v $SRC_DIR:/opt/tomcat-src -v m2cache:/root/.m2 maven:$MAVEN_TAG sh -c "cd /opt/tomcat-src/tomcat && git reset --hard && git checkout $VER && sed -i 's/<release>1.8<\/release>//' modules/owb/pom.xml && mvn $JD1 $JD2 clean install -f modules/owb && mvn $JD1 $JD2 clean install -f modules/cxf"
+
+mkdir -p build && mv $SRC_DIR/tomcat/modules/owb/target/tomcat-owb-*.jar $SRC_DIR/tomcat/modules/cxf/target/tomcat-cxf-*.jar build/
+
+docker run --rm -v $SRC_DIR:/opt/tomcat-src -v m2cache:/root/.m2 maven:$MAVEN_TAG sh -c "cd /opt/tomcat-src/tomcat && mvn clean -f modules/owb && mvn clean -f modules/cxf"
+
+COPY_CDI_FILES="COPY "`ls build/tomcat-owb-*.jar`" /usr/local/tomcat/lib/"
+ADD_CDI_SCRIPT="ADD xsl/server-cdi.xsl /usr/local/tomcat/"
+COPY_CXF_FILES="COPY "`ls build/tomcat-cxf-*.jar`" /usr/local/tomcat/lib/"
+fi
+
+envsubst > Dockerfile <<EOF
 FROM tomcat:$t
 LABEL maintainer="thachanh@esi.vn"
 
