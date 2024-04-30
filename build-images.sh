@@ -5,7 +5,7 @@ LIST=$1
 CDILIST=$2
 
 if [ "$LIST" = "" ]; then
-LIST="8.5-jdk8 8.5-jdk11 8.5-jdk8-temurin-focal 8.5-jdk8-slim 8.5-jdk8-openjdk-slim-bullseye 8.5-jdk8-corretto 8.5-jdk11-corretto 8.5-jdk11-openjdk-slim-bullseye 8.5-jdk11-temurin-focal 9-jdk11 9-jdk11-slim 9-jdk11-openjdk-slim 9-jdk11-corretto 9-jdk11-temurin-focal 9-jdk17-corretto 9-jdk17-temurin-focal 10.0-jdk11-temurin-focal 10.0-jdk11-corretto 10.0-jdk17-temurin-focal 10.0-jdk17-corretto"
+LIST="8.5-jdk8 8.5-jdk8-temurin 8.5-jdk8-temurin-focal 8.5-jdk8-temurin-jammy 8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11 8.5-jdk11-temurin 8.5-jdk11-temurin-jammy 8.5-jdk11-temurin-focal 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11 9-jdk11-temurin 9-jdk11-temurin-jammy 9-jdk11-temurin-focal 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-temurin 9-jdk17-temurin-jammy 9-jdk17-temurin-focal 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-temurin 10-jdk11-temurin-jammy 10-jdk11-temurin-focal 10-jdk11-corretto 10-jdk11-corretto-al2 10.0-jdk11 10.0-jdk11-temurin 10.0-jdk11-temurin-jammy 10.0-jdk11-temurin-focal 10.0-jdk11-corretto 10.0-jdk11-corretto-al2 10.1-jdk11 10.1-jdk11-temurin 10.1-jdk11-temurin-jammy 10.1-jdk11-temurin-focal 10.1-jdk11-corretto 10.1-jdk11-corretto-al2 10-jdk17 10-jdk17-temurin 10-jdk17-temurin-jammy 10-jdk17-temurin-focal 10-jdk17-corretto 10-jdk17-corretto-al2 10.0-jdk17 10.0-jdk17-temurin 10.0-jdk17-temurin-jammy 10.0-jdk17-temurin-focal 10.0-jdk17-corretto 10.0-jdk17-corretto-al2 10.1-jdk17 10.1-jdk17-temurin 10.1-jdk17-temurin-jammy 10.1-jdk17-temurin-focal 10.1-jdk17-corretto 10.1-jdk17-corretto-al2"
 fi
 
 if [ "$CDILIST" = "" ]; then
