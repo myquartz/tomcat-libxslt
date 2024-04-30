@@ -31,7 +31,7 @@ echo Building $t
 
 if [[ "$t" == *"alpine" ]]; then
 INSTALL_CMD='apk add --no-cache libxslt curl net-tools'
-elif [[ "$t" == *"corretto" ]]; then
+elif [[ "$t" == *"corretto"* ]]; then
 INSTALL_CMD='yum -y update && yum install -y libxslt net-tools && yum clean all'
 else
 INSTALL_CMD='apt-get update && apt-get -y upgrade && apt-get install -y xsltproc curl net-tools && rm -rf /var/lib/apt/lists/*'
