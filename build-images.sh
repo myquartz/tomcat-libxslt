@@ -74,6 +74,11 @@ docker run --rm -v $SRC_DIR:/opt/tomcat-src -v m2cache:/root/.m2 maven:$MAVEN_TA
 COPY_CDI_FILES="COPY "`ls build/tomcat-owb-*.jar`" /usr/local/tomcat/lib/"
 ADD_CDI_SCRIPT="ADD xsl/server-cdi.xsl /usr/local/tomcat/"
 COPY_CXF_FILES="COPY "`ls build/tomcat-cxf-*.jar`" /usr/local/tomcat/lib/"
+else
+
+COPY_CDI_FILES=
+ADD_CDI_SCRIPT=
+COPY_CXF_FILES=
 fi
 
 envsubst > Dockerfile <<EOF
