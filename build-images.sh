@@ -24,10 +24,11 @@ fi
 #
 #docker run --rm -it -v tomcatwork:/root maven:3.8 bash -c "mkdir -p /root/tomcat-src && cd /root/tomcat-src && git clone https://github.com/apache/tomcat.git"
 
+for cdi in $CDILIST; do
 for t in $LIST
 do
 
-echo Building $t
+echo Building $t cdi=$cdi
 
 if [[ "$t" == *"alpine" ]]; then
 INSTALL_CMD='apk add --no-cache libxslt curl net-tools'
@@ -37,7 +38,6 @@ else
 INSTALL_CMD='apt-get update && apt-get -y upgrade && apt-get install -y xsltproc curl net-tools && rm -rf /var/lib/apt/lists/*'
 fi
 
-for cdi in $CDILIST; do
 if [ "$cdi" == "yes" ]; then
 MAVEN_TAG=3-eclipse-temurin-11
 JD1=-Dmaven.compiler.source=11
@@ -67,13 +67,13 @@ fi
 
 docker run --rm -v $SRC_DIR:/opt/tomcat-src -v m2cache:/root/.m2 maven:$MAVEN_TAG sh -c "cd /opt/tomcat-src/tomcat && git reset --hard && git checkout $VER && sed -i 's/<release>1.8<\/release>//' modules/owb/pom.xml && mvn $JD1 $JD2 clean install -f modules/owb && mvn $JD1 $JD2 clean install -f modules/cxf"
 
-mkdir -p build && cp $SRC_DIR/tomcat/modules/owb/target/tomcat-owb-*.jar $SRC_DIR/tomcat/modules/cxf/target/tomcat-cxf-*.jar build/
+mkdir -p build && rm -f build/* && cp $SRC_DIR/tomcat/modules/owb/target/tomcat-owb-*.jar $SRC_DIR/tomcat/modules/cxf/target/tomcat-cxf-*.jar build/
 
 docker run --rm -v $SRC_DIR:/opt/tomcat-src -v m2cache:/root/.m2 maven:$MAVEN_TAG sh -c "cd /opt/tomcat-src/tomcat && mvn clean -f modules/owb && mvn clean -f modules/cxf"
 
-COPY_CDI_FILES="COPY "`ls build/tomcat-owb-*.jar`" /usr/local/tomcat/lib/"
+COPY_CDI_FILES="COPY "`ls build/tomcat-owb-*.jar | xargs echo -n`" /usr/local/tomcat/lib/"
 ADD_CDI_SCRIPT="ADD xsl/server-cdi.xsl /usr/local/tomcat/"
-COPY_CXF_FILES="COPY "`ls build/tomcat-cxf-*.jar`" /usr/local/tomcat/lib/"
+COPY_CXF_FILES="COPY "`ls build/tomcat-cxf-*.jar | xargs echo -n`" /usr/local/tomcat/lib/"
 else
 
 COPY_CDI_FILES=
@@ -155,8 +155,11 @@ CMD ["catalina-run.sh"]
 EOF
 
 TAG=$t
-if [ "$VER" != "" ]; then
+if [ "$VER" != "" -a "$cdi" = "yes" ]; then
 	ALT=-cdi
+elif [ "$cdi" = "yes" ]; then
+	echo "ignore $t, no support CDI"
+	continue
 else
 	ALT=
 fi
@@ -178,6 +181,8 @@ else
 	docker build -t "$IMAGE_TAG" .
 	[ "$PUSH" = "yes" ] && docker push "$IMAGE_TAG"
 fi
+
+rm -f build/*
 done
 done
 
