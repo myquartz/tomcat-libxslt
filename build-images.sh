@@ -66,7 +66,7 @@ docker run --rm -v $SRC_DIR:/opt/tomcat-src maven:$MAVEN_TAG sh -c "cd /opt/tomc
 fi
 
 docker run --rm -v $SRC_DIR:/opt/tomcat-src -v m2cache:/root/.m2 maven:$MAVEN_TAG sh -c \
-	"cd /opt/tomcat-src/tomcat && git reset --hard && git checkout $VER && sed -i 's/<release>1.8<\/release>//' modules/owb/pom.xml && mvn $JD1 $JD2 clean install -f modules/owb && sed -i 's/<version>3.5.3/3.5.5/' modules/cxf/pom.xml && mvn $JD1 $JD2 clean install -f modules/cxf"
+	"cd /opt/tomcat-src/tomcat && git reset --hard && git checkout $VER && sed -i 's/<release>1.8<\/release>//' modules/owb/pom.xml && mvn $JD1 $JD2 clean install -f modules/owb && sed -i 's/<version>3.5.3/<version>3.5.5/' modules/cxf/pom.xml && mvn $JD1 $JD2 clean install -f modules/cxf"
 
 mkdir -p build && rm -f build/* && cp $SRC_DIR/tomcat/modules/owb/target/tomcat-owb-*.jar $SRC_DIR/tomcat/modules/cxf/target/tomcat-cxf-*.jar build/
 
