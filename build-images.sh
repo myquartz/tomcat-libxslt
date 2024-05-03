@@ -44,9 +44,9 @@ JD1=-Dmaven.compiler.source=11
 JD2=-Dmaven.compiler.target=11
 if [[ "$t" == "9"* ]]; then
 	VER=9.0.x
-  MAVEN_TAG=3.8-eclipse-temurin-8
-  JD1=-Dmaven.compiler.source=1.8
-  JD2=-Dmaven.compiler.target=1.8
+	MAVEN_TAG=3.8-eclipse-temurin-8
+	JD1=-Dmaven.compiler.source=1.8
+	JD2=-Dmaven.compiler.target=1.8
 elif [[ "$t" == "10.0"* ]]; then
 	VER=10.0.x
 elif [[ "$t" == "10.1"* ]]; then
@@ -65,16 +65,17 @@ if [ ! -e "$SRC_DIR/tomcat" ]; then
 docker run --rm -v $SRC_DIR:/opt/tomcat-src maven:$MAVEN_TAG sh -c "cd /opt/tomcat-src && git clone https://github.com/apache/tomcat.git"
 fi
 
+if [ ! -e "build/$VER" ]; then
 docker run --rm -v $SRC_DIR:/opt/tomcat-src -v m2cache:/root/.m2 maven:$MAVEN_TAG sh -c \
 	"cd /opt/tomcat-src/tomcat && git reset --hard && git checkout $VER && sed -i 's/<release>1.8<\/release>//' modules/owb/pom.xml && mvn $JD1 $JD2 clean install -f modules/owb && sed -i 's/<version>3.5.3/<version>3.5.5/' modules/cxf/pom.xml && mvn $JD1 $JD2 clean install -f modules/cxf"
 
-mkdir -p build && rm -f build/* && cp $SRC_DIR/tomcat/modules/owb/target/tomcat-owb-*.jar $SRC_DIR/tomcat/modules/cxf/target/tomcat-cxf-*.jar build/
+mkdir -p build/$VER && cp $SRC_DIR/tomcat/modules/owb/target/tomcat-owb-*.jar $SRC_DIR/tomcat/modules/cxf/target/tomcat-cxf-*.jar build/$VER/
 
 docker run --rm -v $SRC_DIR:/opt/tomcat-src -v m2cache:/root/.m2 maven:$MAVEN_TAG sh -c "cd /opt/tomcat-src/tomcat && mvn clean -f modules/owb && mvn clean -f modules/cxf"
-
-COPY_CDI_FILES="COPY "`ls build/tomcat-owb-*.jar | xargs echo -n`" /usr/local/tomcat/lib/"
+fi
+COPY_CDI_FILES="COPY "`ls build/$VER/tomcat-owb-*.jar | xargs echo -n`" /usr/local/tomcat/lib/"
 ADD_CDI_SCRIPT="ADD xsl/server-cdi.xsl /usr/local/tomcat/"
-COPY_CXF_FILES="COPY "`ls build/tomcat-cxf-*.jar | xargs echo -n`" /usr/local/tomcat/lib/"
+COPY_CXF_FILES="COPY "`ls build/$VER/tomcat-cxf-*.jar | xargs echo -n`" /usr/local/tomcat/lib/"
 else
 
 COPY_CDI_FILES=
@@ -84,7 +85,7 @@ fi
 
 envsubst > Dockerfile <<EOF
 FROM tomcat:$t
-LABEL maintainer="thachanh@esi.vn"
+LABEL maintainer="myquartz@gmail.com"
 
 RUN $INSTALL_CMD
 
@@ -183,8 +184,8 @@ else
 	[ "$PUSH" = "yes" ] && docker push "$IMAGE_TAG"
 fi
 
-rm -f build/*
 done
 done
 
+rm -fR build
 rm -f Dockerfile
