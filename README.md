@@ -1,31 +1,42 @@
 # The tomcat-libxslt container build
 
-This contains building scripts for Apache Tomcat with LibXSLT for XML configuration mangling. Supported Tomcat versions:
-
-  1. Tomcat 8.5 with JDK 8, 11
-  2. Tomcat 9 with JDK 11, 17
-  3. Tomcat 10.0, 10.1 with JDK 11, 17, without or with CDI and CXF modules compiled.
-  4. AMD64 and ARM64/v8 platform support.
+This source repository contains building scripts for Apache Tomcat with LibXSLT for XML configuration mangling. Tomcat's main configuration files are server.xml, tomcat-users.xml, Catalina/localhost/your-app.xml... so it is best to use xsltproc to manipulate them.
 
 # Supported features
 
-1. Context-based: the startup script will create the context-deployed "conf/Catalina/localhost/application.xml" file for application.war.
-2. Global resource: the startup script will update conf/server.xml into <GlobalNamingResources /> for the resource.
+The script builds Apache Tomcat to manipulate configuration for:
 
-For context-based deployment, an ENV named **DEPLOY_CONTEXT** has to be defined to indicate your **application**.war name. If not, ROOT.war assumed.
+1. Tomcat HTTP, HTTPS, AJP Connector ports.
+2. Database Resource for JNDI lookup
+3. Realm Resource for authentication/authorization.
+4. Cluster manager with application session synchronization.
+5. Context-based: the startup script will create/change the context-deployed "conf/Catalina/localhost/application.xml" file (that is by default copied application.war/META-INF/context.xml).
+6. Global resource: the startup script will update conf/server.xml into `<GlobalNamingResources />` for the resource.
+7. Bundle of Tomcat's modules for supporting CDI (the OWB library) and Jax-RS (the CFX library).
+8. AMD64 and ARM64/v8 platform support with docker buildx.
+
+Supported Tomcat versions and variants are:
+
+  1. Tomcat 8.5 with JDK 8, 11 (non-CDI/Jax-RS supported).
+  2. Tomcat 9 with JDK 11, 17.
+  3. Tomcat 10.0, 10.1 with JDK 11, 17.
+  
+## The Tomcat's Web Application Context
+
+For context-based deployment, an ENV named **DEPLOY_CONTEXT** has to be defined to indicate your **application**.war name. If not, ROOT.war is assumed. Global resource does not impacted by this variable.
 
 ## HTTP/HTTPS/AJP Ports
 
 You can change the listening port of the tomcat instance by the following ENV variables:
 
-1. TOMCAT_HTTP_PORT: the HTTP port - default to 8080 - changing to <Connector /> element in the server.xml.
-2. TOMCAT_HTTPS_PORT: the HTTPS port - default to empty - changing to <Connector of SSL /> element in the server.xml (no keystore yet).
-3. TOMCAT_AJP_PORT: the AJP port - default to 8009 - changing to <Connector /> element in the server.xml.
+1. TOMCAT_HTTP_PORT: the HTTP port - default to 8080 - changing to `<Connector />` element in the server.xml.
+2. TOMCAT_HTTPS_PORT: the HTTPS port - default to empty - changing to `<Connector />` element in the server.xml (no keystore yet).
+3. TOMCAT_AJP_PORT: the AJP port - default to 8009 - changing to `<Connector />` element in the server.xml.
 4. CONNECTOR_MAX_THREADS: maximum threads of the connector.
 
 ## Data Source
 
-A context-based data source or a global-based data source will be added to context.xml or server.xml accordingly, based-on enviroment variables.
+A context-based data source or a global-based data source will be added to context.xml or server.xml accordingly, based-on which enviroment variable defined.
 
 The following ENV variables to define a data source:
 
@@ -39,9 +50,11 @@ The following ENV variables to define a data source:
 * DB_IDLE_MAX: idle connections
 * DB_VALIDATION_QUERY: the query for connection validation, empty by default.
 
-When defining these parameters (bold name must have), the <Resource /> will be created/updated to context.xml or server.xml look like:
+When defining these parameters, the `Resource` element will be added/updated to context.xml or server.xml file, it looks like:
 
 ~~~ xml
+<!-- in server.xml, the GlobalNamingResources is the parent of the Resource, instead of Context -->
+<Context>
 <Resource
   auth="Container" 
   type="javax.sql.DataSource" 
@@ -51,6 +64,7 @@ When defining these parameters (bold name must have), the <Resource /> will be c
   url="${DB_URL}" username="${DB_USERNAME}" password="${DB_PASSWORD}"
   maxActive="${DB_POOL_MAX}" initialSize="${DB_POOL_INIT}" maxIdle="${DB_IDLE_MAX}"
   validationQuery="${DB_VALIDATION_QUERY}" />
+</Context>
 ~~~
 
 ## Data Source Realm
@@ -70,10 +84,13 @@ The following ENV variables to define the realm:
 * *REALM_INTERATIONS*: the interation count for hashing password, it should be 1.
 * *REALM_SALT_LENGTH*: the length of salt value.
 * *REALM_ENCODING*: character encoding (eg UTF-8) while hashing.
-
-When defining these parameters, the <Resource /> will be created/updated to context.xml or server.xml look like:
+* *GLOBAL_REALM*: set "yes" value to create global realm instead of context-based realm (only in-case the relevant global data source defined).
+  
+When defining these parameters, the Resource element will be added/updated to context.xml or server.xml, it looks like:
 
 ~~~ xml
+<!-- in server.xml, the Engine is the parent of the Realm, instead of Context -->
+<Context>
 <Realm className="org.apache.catalina.realm.DataSourceRealm"
   dataSourceName="${DB_SOURCENAME} or ${GLOBAL_DB_SOURCENAME}"
   userTable="${REALM_USERTAB}" userNameCol="${REALM_USERCOL}" userCredCol="${REALM_CREDCOL}"
@@ -85,11 +102,13 @@ When defining these parameters, the <Resource /> will be created/updated to cont
     saltLength="${REALM_SALT_LENGTH}" encoding="${REALM_ENCODING}"
   />
 </Realm>
+</Context>
 ~~~
 
 ## LDAP Realm
 
-This Realms is for Servlet/Application authentication by a LDAP server.
+This Realms is for Servlet/Application authentication by a LDAP server. Tomcat support JNDIRealm to query the LDAP server and lookup user/group for the realm.
+
 The realm will be set to context-based or global/context depending on LDAP_URL or GLOBAL_LDAP_URL defined.
 
 The following ENV variables to define the realm:
@@ -112,6 +131,23 @@ The following ENV variables to define the realm:
 * *COMMON_ROLE*: the common role (an user without any role).
 * *ALL_ROLES_MODE*: the value of attribute "allRolesMode", one of value 'strict' or 'authOnly' or 'strictAuthOnly'.
 
+When defining these parameters, the Resource element will be added/updated to context.xml or server.xml, it looks like:
+
+~~~ xml
+<!-- in server.xml, the Engine is the parent of the Realm, instead of Context -->
+<Context>
+<Realm className="org.apache.catalina.realm.JNDIRealm"
+  connectionURL="${LDAP_URL} or ${GLOBAL_LDAP_URL}" alternateURL="${LDAP_ALT_URL}"
+  userSearchAsUser="${LDAP_SEARCHASUSER}" connectionName="${LDAP_BIND}" connectionPassword="${LDAP_BIND_PASSWORD}"
+  userBase="${LDAP_USER_BASEDN}" userSubtree="${LDAP_USER_SUBTREE}" userSearch="${LDAP_USER_SEARCH}"
+  userPassword="${LDAP_USER_PASSWD_ATTR}" userPattern="${LDAP_USER_PATTERN}" userRoleName="${LDAP_USER_ROLE_ATTR}"
+  roleBase="${LDAP_GROUP_BASEDN}" roleSubtree="${LDAP_GROUP_SUBTREE}" roleName="${LDAP_GROUP_ATTR}"
+  roleSearch="${LDAP_GROUP_SEARCH}" commonRole="${COMMON_ROLE}"
+  allRolesMode="${ALL_ROLES_MODE}" adCompat="${AD_COMPAT}">
+</Realm>
+</Context>
+~~~
+
 ## Tomcat Cluster
 
 The Apache Tomcat additional supports Cluster feature for synchronization of session data between the tomcat instances.
@@ -122,11 +158,51 @@ Once you define either CLUSTER=DeltaManager or CLUSTER=BackupManager, the follow
 
 1. **KUBERNETES_NAMESPACE** or **OPENSHIFT_KUBE_PING_NAMESPACE** set to k8s namespace. Tomcat Cluster will detect member automatically without any further configuration.
 2. **DNS_MEMBERSHIP_SERVICE_NAME** to DNS name of the containers running (eg CloudMap of AWS ECS), the DNS A records will be treated as members automatically.
-3. **REPLICAS** (default mode): number of replicas (from 1 to 6, default to 2) if you running by docker swarm and your container instance's hostname end with number from 1 to 6, you can use this mode. See the link to know how plus using `--hostname="tomcat-{{.Task.Slot}}"` to setup this kind of the cluster: https://docs.docker.com/engine/swarm/services/
+3. **REPLICAS** (default mode): number of replicas (from 1 to 6, default to 2) if you running by docker swarm and your container instance's hostname ends with a number from 1 to 6, you can use this mode. See the link https://docs.docker.com/engine/swarm/services/ to know how to setup this kind of the cluster. *Note:* using the parameter `--hostname="{{.Task.Name}}-{{.Task.Slot}}"` to build hostname with a number behind.
+4. *RECEIVE_PORT*: the port for cluster's communication.
+5. *REPLICATION_FILTER*: the package list that will filtered to replication.
+
+When a cluster defined, the following element will be added into the Engine element (assuming we setup CLUSTER=DeltaManager and KUBERNETES_NAMESPACE=your-cluster-name):
+
+~~~ xml
+<Engine>
+<Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster">
+  <Manager className="org.apache.catalina.ha.session.DeltaManager"
+										   expireSessionsOnShutdown="false"
+										   notifyListenersOnReplication="true"/>
+  <Channel className="org.apache.catalina.tribes.group.GroupChannel">
+    <Membership className="org.apache.catalina.tribes.membership.cloud.CloudMembershipService"
+        membershipProviderClassName="kubernetes" />
+    <Receiver className="org.apache.catalina.tribes.transport.nio.NioReceiver"
+		  address="auto" port="${RECEIVE_PORT}"
+			selectorTimeout="100" maxThreads="6">
+    </Receiver>
+    <Sender className="org.apache.catalina.tribes.transport.ReplicationTransmitter">
+      <Transport className="org.apache.catalina.tribes.transport.nio.PooledParallelSender"/>
+    </Sender>
+    <Interceptor className="org.apache.catalina.tribes.group.interceptors.TcpFailureDetector"/>
+    <Interceptor className="org.apache.catalina.tribes.group.interceptors.MessageDispatchInterceptor"/>
+    <Interceptor className="org.apache.catalina.tribes.group.interceptors.ThroughputInterceptor"/>
+  </Channel>
+  <Valve className="org.apache.catalina.ha.tcp.ReplicationValve" filter="">
+  </Valve>
+  <ClusterListener className="org.apache.catalina.ha.session.ClusterSessionListener"/>
+</Cluster>
+<!-- other elements -->
+</Engine>
+~~~
 
 ## CDI / CXF enable
 
-To enable CDI support by Tomcat OWB/Jax-RS modules (from verion 9 to 10), you can set CDI_ENABLE=yes or CDI_ENABLE=true. The base name of image are `tomcat-xslt-cdi:tag` are bundle with jar library that support CDI web application. See https://tomcat.apache.org/tomcat-9.0-doc/cdi.html for more detail.
+To enable CDI support by Tomcat OWB/Jax-RS modules (from verion 9 to 10), you can set `CDI_ENABLE=yes` or `CDI_ENABLE=true`. The base name of image are `tomcat-xslt-cdi` is bundle with jar libraries that support CDI/Jax-RS web application. See https://tomcat.apache.org/tomcat-9.0-doc/cdi.html for more detail.
+
+When CDI enable, together with added libraries, the Server element in server.xml file will be added the following element:
+
+~~~ xml
+<Server>
+<Listener className="org.apache.webbeans.web.tomcat.OpenWebBeansListener" optional="true" startWithoutBeansXml="false" />
+</Server>
+~~~
 
 # The prebuilt images
 
