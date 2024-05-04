@@ -159,7 +159,7 @@ Once you define either CLUSTER=DeltaManager or CLUSTER=BackupManager, the follow
 1. **KUBERNETES_NAMESPACE** or **OPENSHIFT_KUBE_PING_NAMESPACE** set to k8s namespace. Tomcat Cluster will detect member automatically without any further configuration.
 2. **DNS_MEMBERSHIP_SERVICE_NAME** to DNS name of the containers running (eg CloudMap of AWS ECS), the DNS A records will be treated as members automatically.
 3. **REPLICAS** (default mode): number of replicas (from 1 to 6, default to 2) if you running by docker swarm and your container instance's hostname ends with a number from 1 to 6, you can use this mode. See the link https://docs.docker.com/engine/swarm/services/ to know how to setup this kind of the cluster. *Note:* using the parameter `--hostname="{{.Task.Name}}-{{.Task.Slot}}"` to build hostname with a number behind.
-4. *RECEIVE_PORT*: the port for cluster's communication.
+4. *RECEIVE_PORT*: the port for cluster's communication - default to 5002.
 5. *REPLICATION_FILTER*: the package list that will filtered to replication.
 
 When a cluster defined, the following element will be added into the Engine element (assuming we setup CLUSTER=DeltaManager and KUBERNETES_NAMESPACE=your-cluster-name):
@@ -168,14 +168,12 @@ When a cluster defined, the following element will be added into the Engine elem
 <Engine>
 <Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster">
   <Manager className="org.apache.catalina.ha.session.DeltaManager"
-										   expireSessionsOnShutdown="false"
-										   notifyListenersOnReplication="true"/>
+	expireSessionsOnShutdown="false" notifyListenersOnReplication="true"/>
   <Channel className="org.apache.catalina.tribes.group.GroupChannel">
     <Membership className="org.apache.catalina.tribes.membership.cloud.CloudMembershipService"
         membershipProviderClassName="kubernetes" />
     <Receiver className="org.apache.catalina.tribes.transport.nio.NioReceiver"
-		  address="auto" port="${RECEIVE_PORT}"
-			selectorTimeout="100" maxThreads="6">
+	address="auto" port="${RECEIVE_PORT}" selectorTimeout="100" maxThreads="6">
     </Receiver>
     <Sender className="org.apache.catalina.tribes.transport.ReplicationTransmitter">
       <Transport className="org.apache.catalina.tribes.transport.nio.PooledParallelSender"/>
@@ -184,7 +182,7 @@ When a cluster defined, the following element will be added into the Engine elem
     <Interceptor className="org.apache.catalina.tribes.group.interceptors.MessageDispatchInterceptor"/>
     <Interceptor className="org.apache.catalina.tribes.group.interceptors.ThroughputInterceptor"/>
   </Channel>
-  <Valve className="org.apache.catalina.ha.tcp.ReplicationValve" filter="">
+  <Valve className="org.apache.catalina.ha.tcp.ReplicationValve" filter="${REPLICATION_FILTER}">
   </Valve>
   <ClusterListener className="org.apache.catalina.ha.session.ClusterSessionListener"/>
 </Cluster>
@@ -282,6 +280,8 @@ docker run -d -p 8080:8080 -e DB_URL=jdbc:postgresql://your-db-server-ip:5432/po
 Access the URL: http://localhost:8080/ for accessing the application.
 
 ---
+
 Let be happy container packaging
+
 @MyQuartz
 
