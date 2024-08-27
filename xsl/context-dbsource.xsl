@@ -19,7 +19,7 @@
 		<Context>
 			<xsl:for-each select="Context/child::*">
 				<xsl:choose>
-					<xsl:when test="name() = 'Resource' and @type = 'javax.sql.DataSource'">
+					<xsl:when test="name() = 'Resource' and @name = $DB_SOURCENAME">
 						<xsl:call-template name="add_resource" />
 					</xsl:when>
 					<xsl:otherwise>
