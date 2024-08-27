@@ -81,14 +81,14 @@ elif [ "$GLOBAL_DB_SOURCENAME" != "" -a "$DB_CLASS" != "" -a "$DB_URL" != "" -a 
 	fi
 fi
 
-for key in "" 0 1 2 3 4; do
-#Context Resource (RESOURCE_NAME{,0,1,2,3...}, RESOURCE_TYPE{,0,1,2,3...}, RESOURCE_FACTORY{,0,1,2,3...},...)
-if [ "$RESOURCE_NAME$key" != "" -a "$RESOURCE_TYPE$key" != "" -a "$RESOURCE_FACTORY$key" != "" -a -e "context-any-resource.xsl" ]; then	
-	echo "Merging context Resource for $RESOURCE_NAME$key"
-	xsltproc --param RESOURCE_NAME "'$RESOURCE_NAME$key'" --param type_className \"$RESOURCE_TYPE$key\" --param factory_className \"$RESOURCE_FACTORY$key\" \
- 		--param auth_Application \"$RESOURCE_SHARE$key\" --param singleton \"$RESOURCE_SINGLETON$key\" \
-   		--param scope_Unshareable \"$RESOURCE_SCOPE$key\" --param closeMethod_name \"$RESOURCE_CLOSE_METHOD$key\" \
-   		--param description \"$RESOURCE_DESCRIPTION$key\" context-any-resource.xsl context-output.xml > context-temp.xml
+for key in 0 1 2 3 4; do
+#Context Resource (RESOURCE_NAME[0,1,2,3...], RESOURCE_TYPE[0,1,2,3...], RESOURCE_FACTORY[0,1,2,3...]
+if [ "${RESOURCE_NAME[$key]}" != "" -a "${RESOURCE_TYPE[$key]}" != "" -a "${RESOURCE_FACTORY[$key]}" != "" -a -e "context-any-resource.xsl" ]; then	
+	echo "Merging context Resource for ${RESOURCE_NAME[$key]}"
+	xsltproc --param RESOURCE_NAME "'${RESOURCE_NAME[$key]}'" --param type_className \"${RESOURCE_TYPE[$key]}\" --param factory_className \"${RESOURCE_FACTORY[$key]}\" \
+ 		--param auth_Application \"${RESOURCE_SHARE[$key]}\" --param singleton \"${RESOURCE_SINGLETON[$key]}\" \
+   		--param scope_Unshareable \"${RESOURCE_SCOPE[$key]}\" --param closeMethod_name \"${RESOURCE_CLOSE_METHOD[$key]}\" \
+   		--param description \"${RESOURCE_DESCRIPTION[$key]}\" context-any-resource.xsl context-output.xml > context-temp.xml
 	[ -s context-temp.xml ] && mv -f context-temp.xml context-output.xml
 fi
 done
