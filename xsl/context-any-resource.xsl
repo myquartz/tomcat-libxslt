@@ -26,7 +26,7 @@
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:for-each>
-			<xsl:if test="not(/Context/Resource)">
+			<xsl:if test="not(/Context/Resource[@name = $RESOURCE_NAME])">
 				<xsl:call-template name="add_resource" />
 			</xsl:if>
 		</Context>
