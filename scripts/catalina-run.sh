@@ -103,6 +103,42 @@ if [ "$RESOURCE_NAME" != "" ]; then
 	done
 fi
 
+if [ "$PARAMETER_NAME" != "" ]; then
+	IFS=',' read -r -a RES_NAME <<< "$PARAMETER_NAME"
+ 	IFS=',' read -r -a RES_VALUE <<< "$PARAMETER_VALUE"
+ 	IFS=',' read -r -a RES_OVERRIDE <<< "$PARAMETER_OVERRIDE"
+     	IFS=',' read -r -a RES_DESCRIPTION <<< "$PARAMETER_DESCRIPTION"
+      
+	for key in 0 1 2 3 4; do
+		#Context Parameter (RES_NAME[0,1,2,3...], RES_VALUE[0,1,2,3...], RES_OVERRIDE[0,1,2,3...]
+		if [ "${RES_NAME[$key]}" != "" -a "${RES_VALUE[$key]}" != "" -a -e "context-parameter.xsl" ]; then
+			echo "Merging context Resource for ${RES_NAME[$key]} description ${RES_DESCRIPTION[$key]}"
+			xsltproc --param param_name "'${RES_NAME[$key]}'" --param param_value \"${RES_VALUE[$key]}\" \
+		 		--param param_override \"${RES_OVERRIDE[$key]}\" --param param_description \"${RES_DESCRIPTION[$key]}\" \
+		   		context-parameter.xsl context-output.xml > context-temp.xml
+			[ -s context-temp.xml ] && mv -f context-temp.xml context-output.xml
+  		fi
+	done
+fi
+
+if [ "$ENVIRONMENT_NAME" != "" ]; then
+	IFS=',' read -r -a RES_NAME <<< "$ENVIRONMENT_NAME"
+ 	IFS=',' read -r -a RES_TYPE <<< "$ENVIRONMENT_TYPE"
+ 	IFS=',' read -r -a RES_VALUE <<< "$ENVIRONMENT_VALUE"
+ 	IFS=',' read -r -a RES_OVERRIDE <<< "$ENVIRONMENT_OVERRIDE"
+      
+	for key in 0 1 2 3 4; do
+		#Context Parameter (RES_NAME[0,1,2,3...], RES_VALUE[0,1,2,3...], RES_OVERRIDE[0,1,2,3...]
+		if [ "${RES_NAME[$key]}" != "" -a "${RES_VALUE[$key]}" != "" -a -e "context-parameter.xsl" ]; then
+			echo "Merging context Resource for ${RES_NAME[$key]} description ${RES_DESCRIPTION[$key]}"
+			xsltproc --param env_name "'${RES_NAME[$key]}'" --param env_value \"${RES_VALUE[$key]}\" \
+		 		--param env_type \"${RES_TYPE[$key]}\" --param env_override \"${RES_OVERRIDE[$key]}\" \
+		   		context-environment.xsl context-output.xml > context-temp.xml
+			[ -s context-temp.xml ] && mv -f context-temp.xml context-output.xml
+  		fi
+	done
+fi
+
 #TCP Simple Cluster
 if [ "$CLUSTER" = "DeltaManager" -o "$CLUSTER" = "BackupManager" ]; then
   if [ -e "server-cluster.xsl" ]; then
