@@ -33,11 +33,11 @@
 			<xsl:attribute name="name">
 				<xsl:value-of select="$param_name" />
 			</xsl:attribute>
-			<xsl:attribute name="type">
+			<xsl:attribute name="value">
 				<xsl:value-of select="$param_value" />
 			</xsl:attribute>
-      <xsl:attribute name="override">
-        <xsl:choose>
+      			<xsl:attribute name="override">
+        			<xsl:choose>
 					<xsl:when test="'true' = $override or 'yes' = $override">
 						true
 					</xsl:when>
@@ -46,11 +46,11 @@
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:attribute>
-      <xsl:if test="'' != $param_description">
-        <xsl:attribute name="param_description">
+      			<xsl:if test="'' != $param_description">
+        			<xsl:attribute name="param_description">
   				<xsl:value-of select="$param_description" />
-  			</xsl:attribute>
-      </xsl:if>
+  				</xsl:attribute>
+      			</xsl:if>
 		</Parameter>
 	</xsl:template>
 </xsl:stylesheet>
