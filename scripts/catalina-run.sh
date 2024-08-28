@@ -5,9 +5,16 @@ echo catalina-run.sh starting
 if [ -e "webapps/$DEPLOY_CONTEXT.war" ]; then
 	echo Extract context.xml from webapps/$DEPLOY_CONTEXT.war
 	jar -xf webapps/$DEPLOY_CONTEXT.war META-INF/context.xml
+elif [ -e "webapps/$DEPLOY_CONTEXT/META-INF/context.xml" ]; then
+	echo copy context.xml from webapps/$DEPLOY_CONTEXT
+	cp -f "webapps/$DEPLOY_CONTEXT/META-INF/context.xml" context.xml
 elif [ -e "webapps/ROOT.war" ]; then
 	echo Extract context.xml from webapps/ROOT.war
 	jar -xf webapps/ROOT.war META-INF/context.xml
+	DEPLOY_CONTEXT=ROOT
+elif [ -e "webapps/ROOT/META-INF/context.xml" ]; then
+	echo Extract context.xml from webapps/ROOT.war
+	cp -f "webapps/ROOT/META-INF/context.xml" context.xml
 	DEPLOY_CONTEXT=ROOT
 fi
 
@@ -17,7 +24,7 @@ elif [ -e "context.xml" ]; then
 #No context template, use a default
 	cp context.xml context-output.xml
 else
-echo Empty context-output.xml
+	echo Empty context-output.xml
 	echo "<Context></Context>" > context-output.xml
 fi
 
