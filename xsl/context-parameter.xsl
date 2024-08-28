@@ -38,7 +38,7 @@
 			</xsl:attribute>
       			<xsl:attribute name="override">
         			<xsl:choose>
-					<xsl:when test="'true' = $override or 'yes' = $override">
+					<xsl:when test="'true' = $param_override or 'yes' = $param_override">
 						true
 					</xsl:when>
 					<xsl:otherwise>
