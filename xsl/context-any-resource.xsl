@@ -44,8 +44,8 @@
 				<xsl:value-of select="$factory_className" />
 			</xsl:attribute>
 			<xsl:attribute name="auth">
-        <xsl:choose>
-					<xsl:when test="'Application' = '$auth_Application' or 'true' = '$auth_Application'">
+        			<xsl:choose>
+					<xsl:when test="'Application' = $auth_Application or 'true' = $auth_Application">
 						Application
 					</xsl:when>
 					<xsl:otherwise>
@@ -53,9 +53,9 @@
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:attribute>
-      <xsl:attribute name="scope">
-        <xsl:choose>
-					<xsl:when test="'Unshareable' = '$scope_Unshareable' or 'true' = '$scope_Unshareable'">
+      			<xsl:attribute name="scope">
+        			<xsl:choose>
+					<xsl:when test="'Unshareable' = $scope_Unshareable or 'true' = $scope_Unshareable">
 						Unshareable
 					</xsl:when>
 					<xsl:otherwise>
@@ -63,21 +63,21 @@
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:attribute>
-      <xsl:if test="'' != '$singleton'">
-        <xsl:attribute name="singleton">
+      			<xsl:if test="'' != $singleton">
+        			<xsl:attribute name="singleton">
   				<xsl:value-of select="$singleton" />
-  			</xsl:attribute>
-      </xsl:if>
-			<xsl:if test="'' != '$closeMethod_name'">
-        <xsl:attribute name="closeMethod">
+  				</xsl:attribute>
+      			</xsl:if>
+			<xsl:if test="'' != $closeMethod_name">
+        			<xsl:attribute name="closeMethod">
   				<xsl:value-of select="$closeMethod_name" />
-  			</xsl:attribute>
-      </xsl:if>
-      <xsl:if test="'' != '$description'">
-        <xsl:attribute name="description">
+  				</xsl:attribute>
+      			</xsl:if>
+      			<xsl:if test="'' != $description">
+        			<xsl:attribute name="description">
   				<xsl:value-of select="$description" />
-  			</xsl:attribute>
-      </xsl:if>
+  				</xsl:attribute>
+      			</xsl:if>
 		</Resource>
 	</xsl:template>
 </xsl:stylesheet>
