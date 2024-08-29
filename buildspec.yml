@@ -9,14 +9,14 @@ phases:
             - echo Build docker images started on `date`
             - export QUIET=yes
             - VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2}
-            - MY_DOCKER_REGISTRY=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/${IMAGE_REPO_NAME}/
+            - MY_DOCKER_REGISTRY=public.ecr.aws/${IMAGE_REPO_NAME}/
             - sh build-images.sh "$VARIANT_TAGS" no
     build_cdi:
         commands:
             - echo Build CDI docker images started on `date`
             - export QUIET=yes
             - CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2}
-            - MY_DOCKER_REGISTRY=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME/
+            - MY_DOCKER_REGISTRY=public.ecr.aws/$IMAGE_REPO_NAME/
             - sh build-images.sh "$CDI_VARIANT_TAGS" yes
     post_build:
         commands:
@@ -24,6 +24,6 @@ phases:
             - echo Pushing the Docker images...
             - VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2}
             - CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2}
-            - for v in $VARIANT_TAGS; do docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME/tomcat-xslt:${v}${ARCH} ; done
-            - for v in $CDI_VARIANT_TAGS; do docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v}${ARCH} ; done
+            - for v in $VARIANT_TAGS; do docker push public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}${ARCH} ; done
+            - for v in $CDI_VARIANT_TAGS; do docker push public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v}${ARCH} ; done
             - echo Push completed on `date`
