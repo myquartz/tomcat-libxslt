@@ -93,6 +93,9 @@ $COPY_CDI_FILES
 $COPY_CXF_FILES
 
 ADD scripts/catalina-run.sh /usr/local/tomcat/bin
+ADD xsl/context-any-resource.xsl /usr/local/tomcat/
+ADD xsl/context-environment.xsl /usr/local/tomcat/
+ADD xsl/context-parameter.xsl /usr/local/tomcat/
 ADD xsl/context-ldap-realm.xsl /usr/local/tomcat/
 ADD xsl/server-ldap-realm.xsl /usr/local/tomcat/
 ADD xsl/context-db-realm.xsl /usr/local/tomcat/
@@ -101,6 +104,7 @@ ADD xsl/context-dbsource.xsl /usr/local/tomcat/
 ADD xsl/server-dbsource.xsl /usr/local/tomcat/
 ADD xsl/server-cluster.xsl /usr/local/tomcat/
 ADD xsl/server-port.xsl /usr/local/tomcat/
+
 $ADD_CDI_SCRIPT
 
 RUN cp /usr/local/tomcat/conf/server.xml /usr/local/tomcat/server-orig.xml && chmod +x /usr/local/tomcat/bin/catalina-run.sh
