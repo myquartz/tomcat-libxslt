@@ -184,8 +184,8 @@ if [ "$IMAGE_TAG2" != "" ]; then
 elif [ "$IMAGE_TAG1" != "" ]; then
         docker buildx build $QUIET_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
 else
-	docker build -t "$IMAGE_TAG" .
-	[ "$PUSH" = "yes" ] && docker push "$IMAGE_TAG"
+	docker build -t "${IMAGE_TAG}${ARCH}" .
+	[ "$PUSH" = "yes" ] && docker push "${IMAGE_TAG}${ARCH}"
 fi
 
 done
