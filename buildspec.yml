@@ -1,0 +1,29 @@
+version: 0.2
+phases:
+    pre_build:
+        commands:
+            - echo Logging in to Amazon ECR...
+            - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+    build:
+        commands:
+            - echo Build docker images started on `date`
+            - export QUIET=yes
+            - export VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8 8.5-jdk8-temurin 8.5-jdk8-temurin-focal 8.5-jdk8-temurin-jammy 8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11 8.5-jdk11-temurin 8.5-jdk11-temurin-jammy 8.5-jdk11-temurin-focal 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11 9-jdk11-temurin 9-jdk11-temurin-jammy 9-jdk11-temurin-focal 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-temurin 9-jdk17-temurin-jammy 9-jdk17-temurin-focal 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-temurin 10-jdk11-temurin-jammy 10-jdk11-temurin-focal 10-jdk11-corretto 10-jdk11-corretto-al2 10.0-jdk11 10.0-jdk11-temurin 10.0-jdk11-temurin-jammy 10.0-jdk11-temurin-focal 10.1-jdk11 10.1-jdk11-temurin 10.1-jdk11-temurin-jammy 10.1-jdk11-temurin-focal 10-jdk17 10-jdk17-temurin 10-jdk17-temurin-jammy 10-jdk17-temurin-focal 10.0-jdk17 10.0-jdk17-temurin 10.0-jdk17-temurin-jammy 10.0-jdk17-temurin-focal 10.1-jdk17 10.1-jdk17-temurin 10.1-jdk17-temurin-jammy 10.1-jdk17-temurin-focal}
+            - MY_DOCKER_REGISTRY=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/${IMAGE_REPO_NAME}/
+            - sh build-images.sh "$VARIANT_TAGS" no
+    build_cdi:
+        commands:
+            - echo Build CDI docker images started on `date`
+            - export QUIET=yes
+            - export CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11 9-jdk11-temurin 9-jdk11-temurin-jammy 9-jdk11-temurin-focal 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-temurin 9-jdk17-temurin-jammy 9-jdk17-temurin-focal 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-temurin 10-jdk11-temurin-jammy 10-jdk11-temurin-focal 10-jdk11-corretto 10-jdk11-corretto-al2 10.0-jdk11 10.0-jdk11-temurin 10.0-jdk11-temurin-jammy 10.0-jdk11-temurin-focal 10.1-jdk11 10.1-jdk11-temurin 10.1-jdk11-temurin-jammy 10.1-jdk11-temurin-focal 10-jdk17 10-jdk17-temurin 10-jdk17-temurin-jammy 10-jdk17-temurin-focal 10.0-jdk17 10.0-jdk17-temurin 10.0-jdk17-temurin-jammy 10.0-jdk17-temurin-focal 10.1-jdk17 10.1-jdk17-temurin 10.1-jdk17-temurin-jammy 10.1-jdk17-temurin-focal}
+            - MY_DOCKER_REGISTRY=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME/
+            - sh build-images.sh "$CDI_VARIANT_TAGS" yes
+    post_build:
+        commands:
+            - echo Build completed on `date`
+            - echo Pushing the Docker images...
+            - VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8 8.5-jdk8-temurin 8.5-jdk8-temurin-focal 8.5-jdk8-temurin-jammy 8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11 8.5-jdk11-temurin 8.5-jdk11-temurin-jammy 8.5-jdk11-temurin-focal 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11 9-jdk11-temurin 9-jdk11-temurin-jammy 9-jdk11-temurin-focal 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-temurin 9-jdk17-temurin-jammy 9-jdk17-temurin-focal 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-temurin 10-jdk11-temurin-jammy 10-jdk11-temurin-focal 10-jdk11-corretto 10-jdk11-corretto-al2 10.0-jdk11 10.0-jdk11-temurin 10.0-jdk11-temurin-jammy 10.0-jdk11-temurin-focal 10.1-jdk11 10.1-jdk11-temurin 10.1-jdk11-temurin-jammy 10.1-jdk11-temurin-focal 10-jdk17 10-jdk17-temurin 10-jdk17-temurin-jammy 10-jdk17-temurin-focal 10.0-jdk17 10.0-jdk17-temurin 10.0-jdk17-temurin-jammy 10.0-jdk17-temurin-focal 10.1-jdk17 10.1-jdk17-temurin 10.1-jdk17-temurin-jammy 10.1-jdk17-temurin-focal}
+            - CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11 9-jdk11-temurin 9-jdk11-temurin-jammy 9-jdk11-temurin-focal 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-temurin 9-jdk17-temurin-jammy 9-jdk17-temurin-focal 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-temurin 10-jdk11-temurin-jammy 10-jdk11-temurin-focal 10-jdk11-corretto 10-jdk11-corretto-al2 10.0-jdk11 10.0-jdk11-temurin 10.0-jdk11-temurin-jammy 10.0-jdk11-temurin-focal 10.1-jdk11 10.1-jdk11-temurin 10.1-jdk11-temurin-jammy 10.1-jdk11-temurin-focal 10-jdk17 10-jdk17-temurin 10-jdk17-temurin-jammy 10-jdk17-temurin-focal 10.0-jdk17 10.0-jdk17-temurin 10.0-jdk17-temurin-jammy 10.0-jdk17-temurin-focal 10.1-jdk17 10.1-jdk17-temurin 10.1-jdk17-temurin-jammy 10.1-jdk17-temurin-focal}
+            - for v in $VARIANT_TAGS; do docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME/tomcat-xslt:${v}${ARCH} ; done
+            - for v in $CDI_VARIANT_TAGS; do docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v}${ARCH} ; done
+            - echo Push completed on `date`
