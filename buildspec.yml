@@ -22,6 +22,6 @@ phases:
             - echo Pushing the Docker images...
             - VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2}
             - CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2}
-            - for v in $VARIANT_TAGS; do docker push public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}${ARCH} ; done
-            - for v in $CDI_VARIANT_TAGS; do docker push public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v}${ARCH} ; done
+            - for v in $VARIANT_TAGS; do docker push -q public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}${ARCH} ; done
+            - for v in $CDI_VARIANT_TAGS; do docker push -q public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v}${ARCH} ; done
             - echo Push completed on `date`
