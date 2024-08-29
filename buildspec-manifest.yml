@@ -16,8 +16,6 @@ phases:
             - for v in $VARIANT_TAGS; do docker manifest create public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v} public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}arm64v8 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}amd64 ; done
             - for v in $VARIANT_TAGS; do docker manifest annotate --arch arm64 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v} public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}arm64v8 ; done
             - for v in $VARIANT_TAGS; do docker manifest annotate --arch amd64 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v} public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}amd64 ; done
-    build_cdi:
-        commands:
             - echo Build CDI started on `date`
             - echo Building CDI the Docker manifest...   
             - export DOCKER_CLI_EXPERIMENTAL=enabled
