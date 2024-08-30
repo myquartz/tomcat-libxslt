@@ -189,5 +189,5 @@ if [ -e "server-output.xml" ]; then
 	mv -f server-output.xml conf/server.xml 
 fi
 
-#exec bash
-exec catalina.sh run
+#exec parent
+exec catalina.sh "$@"
