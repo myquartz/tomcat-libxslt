@@ -1,0 +1,27 @@
+version: 0.2
+phases:
+    pre_build:
+        commands:
+            - echo Logging in to Amazon ECR...
+            - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+    build:
+        commands:
+            - echo Build docker images started on `date`
+            - export QUIET=yes
+            - VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2}
+            - MY_DOCKER_REGISTRY=public.ecr.aws/${IMAGE_REPO_NAME}/
+            - sh build-images.sh "$VARIANT_TAGS" no
+            - echo Build CDI docker images started on `date`
+            - export QUIET=yes
+            - CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2}
+            - MY_DOCKER_REGISTRY=public.ecr.aws/$IMAGE_REPO_NAME/
+            - sh build-images.sh "$CDI_VARIANT_TAGS" yes
+    post_build:
+        commands:
+            - echo Build completed on `date`
+            - echo Pushing the Docker images...
+            - VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2}
+            - CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2}
+            - for v in $VARIANT_TAGS; do docker push -q public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}${ARCH} ; done
+            - for v in $CDI_VARIANT_TAGS; do docker push -q public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v}${ARCH} ; done
+            - echo Push completed on `date`
