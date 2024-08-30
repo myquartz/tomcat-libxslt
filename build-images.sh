@@ -20,6 +20,11 @@ if [ "$QUIET" != "" ]; then
 QUIET_OPT="--quiet"
 fi
 
+if [ -r "./profile.conf" ]; then
+        source ./profile.conf
+        export REGISTRY_URL REGISTRY_URL2 MY_DOCKER_REGISTRY BUILD_PLATFORM
+fi
+
 #echo "Loading tomcat source from GitHub"
 #
 #docker run --rm -it -v tomcatwork:/root maven:3.8 bash -c "mkdir -p /root/tomcat-src && cd /root/tomcat-src && git clone https://github.com/apache/tomcat.git"
