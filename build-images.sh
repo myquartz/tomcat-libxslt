@@ -17,7 +17,7 @@ PUSH_OPT="--push"
 fi
 
 if [ "$QUIET" != "" ]; then
-QUIET_OPT="--quiet"
+BUILDER_OPT="$BUILDER_OPT --quiet"
 fi
 
 if [ -r "./profile.conf" ]; then
@@ -185,9 +185,11 @@ IMAGE_TAG2="$REGISTRY_URL2/tomcat-xslt$ALT:$TAG"
 fi
 
 if [ "$IMAGE_TAG2" != "" ]; then
-        docker buildx build $QUIET_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG2" -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
+        docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG2" -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
 elif [ "$IMAGE_TAG1" != "" ]; then
-        docker buildx build $QUIET_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
+        docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
+elif [ "$USING_BUILDX" != "" ]; then
+	docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG" .
 else
 	docker build -q -t "${IMAGE_TAG}${ARCH}" .
 	[ "$PUSH" = "yes" ] && docker push "${IMAGE_TAG}${ARCH}"
