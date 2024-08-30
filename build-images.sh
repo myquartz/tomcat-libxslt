@@ -112,7 +112,7 @@ ADD xsl/server-port.xsl /usr/local/tomcat/
 
 $ADD_CDI_SCRIPT
 
-RUN cp /usr/local/tomcat/conf/server.xml /usr/local/tomcat/server-orig.xml && chmod +x /usr/local/tomcat/bin/catalina-run.sh
+RUN cp /usr/local/tomcat/conf/server.xml /usr/local/tomcat/server-orig.xml && chmod +x /usr/local/tomcat/bin/catalina-xslt.sh
 
 ENV DEPLOY_CONTEXT=
 
