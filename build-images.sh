@@ -33,9 +33,9 @@ echo Building $t cdi=$cdi
 if [[ "$t" == *"alpine" ]]; then
 INSTALL_CMD='apk add --no-cache libxslt curl net-tools'
 elif [[ "$t" == *"corretto"* ]]; then
-INSTALL_CMD='yum -y update && yum install -y libxslt net-tools && yum clean all'
+INSTALL_CMD='yum -q -y update && yum install -q -y libxslt net-tools && yum clean all'
 else
-INSTALL_CMD='apt-get update && apt-get -y upgrade && apt-get install -y xsltproc curl net-tools && rm -rf /var/lib/apt/lists/*'
+INSTALL_CMD='apt-get -q update && apt-get -q -y upgrade && apt-get -q install -y xsltproc curl net-tools && rm -rf /var/lib/apt/lists/*'
 fi
 
 if [ "$cdi" == "yes" ]; then
@@ -92,7 +92,7 @@ RUN $INSTALL_CMD
 $COPY_CDI_FILES
 $COPY_CXF_FILES
 
-ADD scripts/catalina-run.sh /usr/local/tomcat/bin
+ADD scripts/catalina-xslt.sh /usr/local/tomcat/bin
 ADD xsl/context-any-resource.xsl /usr/local/tomcat/
 ADD xsl/context-environment.xsl /usr/local/tomcat/
 ADD xsl/context-parameter.xsl /usr/local/tomcat/
@@ -156,7 +156,7 @@ ENV TOMCAT_HTTPS_PORT=
 ENV TOMCAT_AJP_PORT=
 ENV CONNECTOR_MAX_THREADS=
 
-CMD ["catalina-run.sh"]
+CMD ["catalina-xslt.sh", "run"]
 
 EOF
 
