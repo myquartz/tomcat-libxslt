@@ -5,7 +5,8 @@ on:
     branches:
       - "main"
 env:
-  BUILDER_OPT: "--quiet --builder cloud-myquartz-tomcat-xslt-builder"
+  #BUILDER_OPT: "--quiet --builder cloud-myquartz-tomcat-xslt-builder"
+  BUILDER_OPT: "--quiet"
   BUILD_PLATFORM: "linux/amd64,linux/arm64"
   MY_DOCKER_REGISTRY: myquartz/
   USING_BUILDX: "yes"
