@@ -72,7 +72,7 @@ fi
 
 if [ ! -e "build/$VER" ]; then
 docker run --rm -v $SRC_DIR:/opt/tomcat-src -v m2cache:/root/.m2 maven:$MAVEN_TAG sh -c \
-	"cd /opt/tomcat-src/tomcat && git reset --hard && git checkout $VER && sed -i 's/<release>1.8<\/release>//' modules/owb/pom.xml && mvn $JD1 $JD2 clean install -f modules/owb && sed -i 's/<version>3.5.3/<version>3.5.5/' modules/cxf/pom.xml && mvn $JD1 $JD2 clean install -f modules/cxf"
+	"cd /opt/tomcat-src/tomcat && git reset --hard && git checkout $VER && sed -i 's/<release>1.8<\/release>//' modules/owb/pom.xml && mvn $JD1 $JD2 clean install -q -f modules/owb && sed -i 's/<version>3.5.3/<version>3.5.5/' modules/cxf/pom.xml && mvn $JD1 $JD2 clean install -q -f modules/cxf"
 
 mkdir -p build/$VER && cp $SRC_DIR/tomcat/modules/owb/target/tomcat-owb-*.jar $SRC_DIR/tomcat/modules/cxf/target/tomcat-cxf-*.jar build/$VER/
 
@@ -98,6 +98,9 @@ $COPY_CDI_FILES
 $COPY_CXF_FILES
 
 ADD scripts/catalina-run.sh /usr/local/tomcat/bin
+ADD xsl/context-any-resource.xsl /usr/local/tomcat/
+ADD xsl/context-environment.xsl /usr/local/tomcat/
+ADD xsl/context-parameter.xsl /usr/local/tomcat/
 ADD xsl/context-ldap-realm.xsl /usr/local/tomcat/
 ADD xsl/server-ldap-realm.xsl /usr/local/tomcat/
 ADD xsl/context-db-realm.xsl /usr/local/tomcat/
@@ -106,6 +109,7 @@ ADD xsl/context-dbsource.xsl /usr/local/tomcat/
 ADD xsl/server-dbsource.xsl /usr/local/tomcat/
 ADD xsl/server-cluster.xsl /usr/local/tomcat/
 ADD xsl/server-port.xsl /usr/local/tomcat/
+
 $ADD_CDI_SCRIPT
 
 RUN cp /usr/local/tomcat/conf/server.xml /usr/local/tomcat/server-orig.xml && chmod +x /usr/local/tomcat/bin/catalina-run.sh
@@ -185,8 +189,8 @@ if [ "$IMAGE_TAG2" != "" ]; then
 elif [ "$IMAGE_TAG1" != "" ]; then
         docker buildx build $QUIET_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
 else
-	docker build -t "$IMAGE_TAG" .
-	[ "$PUSH" = "yes" ] && docker push "$IMAGE_TAG"
+	docker build -q -t "${IMAGE_TAG}${ARCH}" .
+	[ "$PUSH" = "yes" ] && docker push "${IMAGE_TAG}${ARCH}"
 fi
 
 done
