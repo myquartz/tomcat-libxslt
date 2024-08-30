@@ -202,6 +202,16 @@ When CDI enable, together with added libraries, the Server element in server.xml
 </Server>
 ~~~
 
+# Catalina run command line
+
+The original CMD **catalina.sh** of Tomcat will be override by **catalina-xslt.sh**. The catalina-xslt.sh produces context.xml and server.xml as environment variables defined, then it executes the original catalina.sh with the same arguments. So to turn on remote debugging of JVM (the jpda debug) for the application war in `./webapps`, please run command:
+
+~~~ shell
+$ docker run -it --rm -p 8000:8000 -p 8080:8080 -e JPDA_ADDRESS=*:8000 -v /usr/local/share/tomcat/webapps:./webapps myquartz/tomcat-xslt:9-jdk11
+~~~
+
+then connect to docker-host:8000 by a JPDA debugger.
+
 # The prebuilt images
 
 You can find prebuilt images at https://hub.docker.com/repository/docker/myquartz/tomcat-xslt/general (without CDI) or https://hub.docker.com/repository/docker/myquartz/tomcat-xslt-cdi/general (Tomcat 9 or Tomcat 10 with CDI support). I update them some weeks regularity.
