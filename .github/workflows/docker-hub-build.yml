@@ -33,4 +33,4 @@ jobs:
       - name: Build and push Tomcat
         run: bash build-images.sh "$TOMCAT_VARIANT_TAGS" "no"
       - name: Build and push Tomcat CDI
-        run: bash build-images.sh "TOMCAT_CDI_VARIANT_TAGS" "yes"
+        run: bash build-images.sh "$TOMCAT_CDI_VARIANT_TAGS" "yes"
