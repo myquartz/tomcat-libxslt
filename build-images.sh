@@ -20,6 +20,11 @@ if [ "$QUIET" != "" ]; then
 QUIET_OPT="--quiet"
 fi
 
+if [ -r "./profile.conf" ]; then
+        source ./profile.conf
+        export REGISTRY_URL REGISTRY_URL2 MY_DOCKER_REGISTRY BUILD_PLATFORM
+fi
+
 #echo "Loading tomcat source from GitHub"
 #
 #docker run --rm -it -v tomcatwork:/root maven:3.8 bash -c "mkdir -p /root/tomcat-src && cd /root/tomcat-src && git clone https://github.com/apache/tomcat.git"
@@ -33,9 +38,9 @@ echo Building $t cdi=$cdi
 if [[ "$t" == *"alpine" ]]; then
 INSTALL_CMD='apk add --no-cache libxslt curl net-tools'
 elif [[ "$t" == *"corretto"* ]]; then
-INSTALL_CMD='yum -y update && yum install -y libxslt net-tools && yum clean all'
+INSTALL_CMD='yum -q -y update && yum install -q -y libxslt net-tools && yum clean all'
 else
-INSTALL_CMD='apt-get update && apt-get -y upgrade && apt-get install -y xsltproc curl net-tools && rm -rf /var/lib/apt/lists/*'
+INSTALL_CMD='apt-get -q update && apt-get -q -y upgrade && apt-get -q install -y xsltproc curl net-tools && rm -rf /var/lib/apt/lists/*'
 fi
 
 if [ "$cdi" == "yes" ]; then
@@ -92,7 +97,7 @@ RUN $INSTALL_CMD
 $COPY_CDI_FILES
 $COPY_CXF_FILES
 
-ADD scripts/catalina-run.sh /usr/local/tomcat/bin
+ADD scripts/catalina-xslt.sh /usr/local/tomcat/bin
 ADD xsl/context-any-resource.xsl /usr/local/tomcat/
 ADD xsl/context-environment.xsl /usr/local/tomcat/
 ADD xsl/context-parameter.xsl /usr/local/tomcat/
@@ -107,7 +112,7 @@ ADD xsl/server-port.xsl /usr/local/tomcat/
 
 $ADD_CDI_SCRIPT
 
-RUN cp /usr/local/tomcat/conf/server.xml /usr/local/tomcat/server-orig.xml && chmod +x /usr/local/tomcat/bin/catalina-run.sh
+RUN cp /usr/local/tomcat/conf/server.xml /usr/local/tomcat/server-orig.xml && chmod +x /usr/local/tomcat/bin/catalina-xslt.sh
 
 ENV DEPLOY_CONTEXT=
 
@@ -156,7 +161,7 @@ ENV TOMCAT_HTTPS_PORT=
 ENV TOMCAT_AJP_PORT=
 ENV CONNECTOR_MAX_THREADS=
 
-CMD ["catalina-run.sh"]
+CMD ["catalina-xslt.sh", "run"]
 
 EOF
 
