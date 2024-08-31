@@ -217,7 +217,7 @@ then connect to docker-host:8000 by a JPDA debugger.
 You can find prebuilt images at the following public registries:
 
 1. Docker Hub: [https://hub.docker.com/r/myquartz/tomcat-xslt](https://hub.docker.com/r/myquartz/tomcat-xslt) (without CDI) or [https://hub.docker.com/r/myquartz/tomcat-xslt-cdi](https://hub.docker.com/r/myquartz/tomcat-xslt-cdi) (Tomcat 9 or Tomcat 10 with CDI support). I update them some weeks regularity.
-2. AWS Public ECR: these images are only built for corretto OpenJDK that supported by AWS. [https://gallery.ecr.aws/k1r3z6f2/myquartz/tomcat-xslt](https://gallery.ecr.aws/k1r3z6f2/myquartz/tomcat-xslt) is without CDI, [https://gallery.ecr.aws/k1r3z6f2/myquartz/tomcat-xslt-cdi](https://gallery.ecr.aws/k1r3z6f2/myquartz/tomcat-xslt-cdi) is with CDI and Jax-RS. These images are updated automatically on main branch push.
+2. AWS Public ECR: these images are built for **Corretto OpenJDK** only that supported by AWS. [https://gallery.ecr.aws/k1r3z6f2/myquartz/tomcat-xslt](https://gallery.ecr.aws/k1r3z6f2/myquartz/tomcat-xslt) is without CDI, [https://gallery.ecr.aws/k1r3z6f2/myquartz/tomcat-xslt-cdi](https://gallery.ecr.aws/k1r3z6f2/myquartz/tomcat-xslt-cdi) is with CDI and Jax-RS. These images are updated automatically on main branch push.
 
 # Build your application image
 
