@@ -12,23 +12,32 @@ phases:
             - echo Build started on `date`
             - echo Building the Docker manifest...   
             - export DOCKER_CLI_EXPERIMENTAL=enabled
-            - VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2}
-            - for v in $VARIANT_TAGS; do docker manifest create public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v} public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}arm64v8 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}amd64 ; done
-            - for v in $VARIANT_TAGS; do docker manifest annotate --arch arm64 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v} public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}arm64v8 ; done
-            - for v in $VARIANT_TAGS; do docker manifest annotate --arch amd64 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v} public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}amd64 ; done
+            - VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17-corretto-al2}
+            - for v in $VARIANT_TAGS; do docker manifest create public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v} public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}-arm64v8 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}-amd64 ; done
+            - docker manifest create public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:latest public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:latest-arm64v8 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:latest-amd64
+            - for v in $VARIANT_TAGS; do docker manifest annotate --arch arm64 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v} public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}-arm64v8 ; done
+            - docker manifest annotate --arch arm64 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:latest public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:latest-arm64v8
+            - for v in $VARIANT_TAGS; do docker manifest annotate --arch amd64 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v} public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}-amd64 ; done
+            - docker manifest annotate --arch amd64 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:latest public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:latest-amd64
             - echo Build CDI started on `date`
             - echo Building CDI the Docker manifest...   
             - export DOCKER_CLI_EXPERIMENTAL=enabled
-            - CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2}
-            - for v in $CDI_VARIANT_TAGS; do docker manifest create public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v} public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v}arm64v8 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v}amd64 ; done
-            - for v in $CDI_VARIANT_TAGS; do docker manifest annotate --arch arm64 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v} public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v}arm64v8 ; done
-            - for v in $CDI_VARIANT_TAGS; do docker manifest annotate --arch amd64 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v} public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v}amd64 ; done
+            - CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17-corretto-al2}
+            - for v in $CDI_VARIANT_TAGS; do docker manifest create public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v} public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v}-arm64v8 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v}-amd64 ; done
+            - docker manifest create public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:latest public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:latest-arm64v8 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:latest-amd64
+            - for v in $CDI_VARIANT_TAGS; do docker manifest annotate --arch arm64 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v} public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v}-arm64v8 ; done
+            - docker manifest annotate --arch arm64 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:latest public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:latest-arm64v8
+            - for v in $CDI_VARIANT_TAGS; do docker manifest annotate --arch amd64 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v} public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v}-amd64 ; done
+            - docker manifest annotate --arch amd64 public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:latest public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:latest-amd64
             
     post_build:
         commands:
             - echo Build completed on `date`
             - echo Pushing the Docker image...
-            - VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2}
-            - CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2}
+            - VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17-corretto-al2}
+            - CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17-corretto-al2}
             - for v in $VARIANT_TAGS; do docker manifest push public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v} ; done
+            - docker manifest push public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:latest
             - for v in $CDI_VARIANT_TAGS; do docker manifest push public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v} ; done
+            - docker manifest push public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:latest
+

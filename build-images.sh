@@ -5,7 +5,7 @@ LIST=$1
 CDILIST=$2
 
 if [ "$LIST" = "" ]; then
-LIST="8.5-jdk8 8.5-jdk8-temurin 8.5-jdk8-temurin-focal 8.5-jdk8-temurin-jammy 8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11 8.5-jdk11-temurin 8.5-jdk11-temurin-jammy 8.5-jdk11-temurin-focal 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11 9-jdk11-temurin 9-jdk11-temurin-jammy 9-jdk11-temurin-focal 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-temurin 9-jdk17-temurin-jammy 9-jdk17-temurin-focal 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-temurin 10-jdk11-temurin-jammy 10-jdk11-temurin-focal 10-jdk11-corretto 10-jdk11-corretto-al2 10.0-jdk11 10.0-jdk11-temurin 10.0-jdk11-temurin-jammy 10.0-jdk11-temurin-focal 10.1-jdk11 10.1-jdk11-temurin 10.1-jdk11-temurin-jammy 10.1-jdk11-temurin-focal 10-jdk17 10-jdk17-temurin 10-jdk17-temurin-jammy 10-jdk17-temurin-focal 10.0-jdk17 10.0-jdk17-temurin 10.0-jdk17-temurin-jammy 10.0-jdk17-temurin-focal 10.1-jdk17 10.1-jdk17-temurin 10.1-jdk17-temurin-jammy 10.1-jdk17-temurin-focal"
+LIST="8.5-jdk8 8.5-jdk8-temurin 8.5-jdk8-temurin-focal 8.5-jdk8-temurin-jammy 8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11 8.5-jdk11-temurin 8.5-jdk11-temurin-jammy 8.5-jdk11-temurin-focal 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11 9-jdk11-temurin 9-jdk11-temurin-jammy 9-jdk11-temurin-focal 9-jdk11-temurin-noble 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-temurin 9-jdk17-temurin-jammy 9-jdk17-temurin-focal 9-jdk17-temurin-noble 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-temurin 10-jdk11-temurin-jammy 10-jdk11-temurin-focal 10-jdk11-temurin-noble 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17 10-jdk17-temurin 10-jdk17-temurin-jammy 10-jdk17-temurin-focal 10-jdk17-temurin-noble 10-jdk21-temurin-noble 10.1-jdk17 10.1-jdk17-temurin 10.1-jdk17-temurin-jammy 10.1-jdk17-temurin-noble 10.1-jdk21-temurin-noble 11.0-jdk21-temurin-noble"
 fi
 
 if [ "$CDILIST" = "" ]; then
@@ -22,7 +22,7 @@ fi
 
 if [ -r "./profile.conf" ]; then
         source ./profile.conf
-        export REGISTRY_URL REGISTRY_URL2 MY_DOCKER_REGISTRY BUILD_PLATFORM
+        export REGISTRY_URL USING_BUILDX MY_DOCKER_REGISTRY BUILD_PLATFORM TAG_POSTFIX LATEST_TAG
 fi
 
 #echo "Loading tomcat source from GitHub"
@@ -36,11 +36,11 @@ do
 echo Building $t cdi=$cdi
 
 if [[ "$t" == *"alpine" ]]; then
-INSTALL_CMD='apk add --no-cache libxslt curl net-tools'
+INSTALL_CMD='apk add --no-cache libxslt curl'
 elif [[ "$t" == *"corretto"* ]]; then
-INSTALL_CMD='yum -q -y update && yum install -q -y libxslt net-tools && yum clean all'
+INSTALL_CMD='yum -q -y update && yum install -q -y libxslt && yum clean all'
 else
-INSTALL_CMD='apt-get -q update && apt-get -q -y upgrade && apt-get -q install -y xsltproc curl net-tools && rm -rf /var/lib/apt/lists/*'
+INSTALL_CMD='apt-get -q update && apt-get -q -y upgrade && apt-get -q install -y xsltproc curl && rm -rf /var/lib/apt/lists/*'
 fi
 
 if [ "$cdi" == "yes" ]; then
@@ -56,6 +56,11 @@ elif [[ "$t" == "10.0"* ]]; then
 	VER=10.0.x
 elif [[ "$t" == "10.1"* ]]; then
 	VER=10.1.x
+elif [[ "$t" == "11.0"* ]]; then
+	MAVEN_TAG=3-eclipse-temurin-17
+  JD1=-Dmaven.compiler.source=17
+  JD2=-Dmaven.compiler.target=17
+	VER=11.0.x
 fi
 else
 	VER=
@@ -63,24 +68,23 @@ fi
 
 if [ "$VER" != "" ]; then
 
-SRC_DIR=`pwd`/../tomcat-src/
-mkdir -p $SRC_DIR
+OUT_DIR=`pwd`/build
+mkdir -p $OUT_DIR
 
-if [ ! -e "$SRC_DIR/tomcat" ]; then
-docker run --rm -v $SRC_DIR:/opt/tomcat-src maven:$MAVEN_TAG sh -c "cd /opt/tomcat-src && git clone https://github.com/apache/tomcat.git"
-fi
+docker run --rm -v tomcat-src:/opt/tomcat-src maven:$MAVEN_TAG sh -c "cd /opt/tomcat-src && [ ! -e tomcat ] && git clone https://github.com/apache/tomcat.git"
 
-if [ ! -e "build/$VER" ]; then
-docker run --rm -v $SRC_DIR:/opt/tomcat-src -v m2cache:/root/.m2 maven:$MAVEN_TAG sh -c \
-	"cd /opt/tomcat-src/tomcat && git reset --hard && git checkout $VER && sed -i 's/<release>1.8<\/release>//' modules/owb/pom.xml && mvn $JD1 $JD2 clean install -q -f modules/owb && sed -i 's/<version>3.5.3/<version>3.5.5/' modules/cxf/pom.xml && mvn $JD1 $JD2 clean install -q -f modules/cxf"
+echo "Running build for $VER"
 
-mkdir -p build/$VER && cp $SRC_DIR/tomcat/modules/owb/target/tomcat-owb-*.jar $SRC_DIR/tomcat/modules/cxf/target/tomcat-cxf-*.jar build/$VER/
+docker run --rm -i -v tomcat-src:/opt/tomcat-src -v m2cache:/root/.m2 maven:$MAVEN_TAG sh -c \
+	"cd /opt/tomcat-src/tomcat && [ ! -e /opt/tomcat-src/$VER ] && git reset --hard && git checkout $VER && sed -i 's/<release>1.8<\/release>//' modules/owb/pom.xml && mvn $JD1 $JD2 clean install -q -f modules/owb && sed -i 's/<version>3.5.3/<version>3.5.5/' modules/cxf/pom.xml && mvn $JD1 $JD2 clean install -q -f modules/cxf && tar -vcf /opt/tomcat-src/$VER modules/owb/target/tomcat-owb-*.jar modules/cxf/target/tomcat-cxf-*.jar"
 
-docker run --rm -v $SRC_DIR:/opt/tomcat-src -v m2cache:/root/.m2 maven:$MAVEN_TAG sh -c "cd /opt/tomcat-src/tomcat && mvn clean -f modules/owb && mvn clean -f modules/cxf"
-fi
-COPY_CDI_FILES="COPY "`ls build/$VER/tomcat-owb-*.jar | xargs echo -n`" /usr/local/tomcat/lib/"
+docker run -d --rm --name cp-$VER -v tomcat-src:/opt/tomcat-src maven:$MAVEN_TAG sh -c "sleep 20"
+
+docker cp cp-$VER:/opt/tomcat-src/$VER $OUT_DIR/$VER.tar && mkdir -p $OUT_DIR/$VER && tar -C $OUT_DIR/$VER -vxf $OUT_DIR/$VER.tar
+
 ADD_CDI_SCRIPT="ADD xsl/server-cdi.xsl /usr/local/tomcat/"
-COPY_CXF_FILES="COPY "`ls build/$VER/tomcat-cxf-*.jar | xargs echo -n`" /usr/local/tomcat/lib/"
+COPY_CDI_FILES="COPY "`ls build/$VER/modules/owb/target/tomcat-owb-*.jar | xargs echo -n`" /usr/local/tomcat/lib/"
+COPY_CXF_FILES="COPY "`ls build/$VER/modules/cxf/target/tomcat-cxf-*.jar | xargs echo -n`" /usr/local/tomcat/lib/"
 else
 
 COPY_CDI_FILES=
@@ -177,26 +181,36 @@ fi
 
 IMAGE_TAG="${MY_DOCKER_REGISTRY}tomcat-xslt$ALT:$TAG"
 
-if [ "$REGISTRY_URL" != "" ]; then
-IMAGE_TAG1="$REGISTRY_URL/tomcat-xslt$ALT:$TAG"
-fi
-if [ "$REGISTRY_URL2" != "" ]; then
-IMAGE_TAG2="$REGISTRY_URL2/tomcat-xslt$ALT:$TAG"
-fi
-
-if [ "$IMAGE_TAG2" != "" ]; then
-        docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG2" -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
-elif [ "$IMAGE_TAG1" != "" ]; then
-        docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
-elif [ "$USING_BUILDX" != "" ]; then
-	docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} -t "$IMAGE_TAG" .
+if [ "$t" = "$LATEST_TAG" ]; then 
+LATEST_OPT1="-t ${MY_DOCKER_REGISTRY}tomcat-xslt$ALT:latest$TAG_POSTFIX"
 else
-	docker build -q -t "${IMAGE_TAG}${ARCH}" .
-	[ "$PUSH" = "yes" ] && docker push "${IMAGE_TAG}${ARCH}"
+LATEST_OPT1=
+fi
+
+if [ "$REGISTRY_URL" != "" ]; then
+  IMAGE_TAG1="$REGISTRY_URL/tomcat-xslt$ALT:$TAG"
+	if [ "$t" = "$LATEST_TAG" ]; then 
+		LATEST_OPT2="-t $REGISTRY_URL/tomcat-xslt$ALT:latest$TAG_POSTFIX"
+  else
+		LATEST_OPT2=
+	fi
+fi
+
+if [ "$IMAGE_TAG1" != "" ]; then
+  docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} $LATEST_OPT1 $LATEST_OPT2 -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
+elif [ "$USING_BUILDX" != "" ]; then
+	docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} $LATEST_OPT1 $LATEST_OPT2 -t "$IMAGE_TAG" .
+else
+	docker build -q -t "${IMAGE_TAG}${TAG_POSTFIX}" $LATEST_OPT1 $LATEST_OPT2 .
+	if [ "$PUSH" = "yes" ]; then
+ 		docker push -q "${IMAGE_TAG}${TAG_POSTFIX}"
+		[ "$LATEST_OPT1" != "" ] && docker push -q $LATEST_OPT1
+		[ "$LATEST_OPT2" != "" ] && docker push -q $LATEST_OPT2
+	fi
 fi
 
 done
 done
 
-rm -fR build
+#rm -fR build
 rm -f Dockerfile
