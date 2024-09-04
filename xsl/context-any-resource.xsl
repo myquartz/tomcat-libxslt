@@ -46,20 +46,20 @@
 			<xsl:attribute name="auth">
         			<xsl:choose>
 					<xsl:when test="'Application' = $auth_Application or 'true' = $auth_Application">
-						Application
+						<xsl:value-of select="'Application'" />
 					</xsl:when>
 					<xsl:otherwise>
-						Container
+						<xsl:value-of select="'Container'" />
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:attribute>
       			<xsl:attribute name="scope">
         			<xsl:choose>
 					<xsl:when test="'Unshareable' = $scope_Unshareable or 'true' = $scope_Unshareable">
-						Unshareable
+						<xsl:value-of select="'Unshareable'" />
 					</xsl:when>
 					<xsl:otherwise>
-						Shareable
+						<xsl:value-of select="'Shareable'" />
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:attribute>
