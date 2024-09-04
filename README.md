@@ -161,7 +161,7 @@ The application archive (war) can be configured by some others resources, there 
 Define docker environment name/values are:
 
 ~~~ shell
-$ docker run -d -p 8080:8080 -e RESOURCE_NAME=mail/Session -e RESOURCE_TYPE=javax.mail.Session -e RESOURCE_FACTORY=your.factory.ClassName -e RESOURCE_AUTH=Application -e DEPLOY_CONTEXT=test-app -v /usr/local/share/tomcat/webapps/test-app:./webapps/test-app myquartz/tomcat-xslt:9-jdk11
+$ docker run -d -p 8080:8080 -e RESOURCE_NAME=mail/Session -e RESOURCE_TYPE=javax.mail.Session -e RESOURCE_FACTORY=your.factory.ClassName -e RESOURCE_AUTH=Application -e DEPLOY_CONTEXT=test-app -v ./webapps/test-app:/usr/local/tomcat/webapps/test-app myquartz/tomcat-xslt:9-jdk11
 ~~~
 
 It will produce the Context configuration as the file **conf/Catalina/localhost/test-app.xml**:
@@ -177,7 +177,7 @@ It will produce the Context configuration as the file **conf/Catalina/localhost/
 Define docker parameter name/values are:
 
 ~~~ shell
-$ docker run -d -p 8080:8080 -e PARAMETER_NAME=companyName,companyEmail -e PARAMETER_VALUE="My&#x0020;Company&#x002C;&#x0020;Incorporated,contact@example.com" -e PARAMETER_OVERRIDE=false,false  -e DEPLOY_CONTEXT=test-app -v /usr/local/share/tomcat/webapps/test-app:./webapps/test-app myquartz/tomcat-xslt:9-jdk11
+$ docker run -d -p 8080:8080 -e PARAMETER_NAME=companyName,companyEmail -e PARAMETER_VALUE="My&#x0020;Company&#x002C;&#x0020;Incorporated,contact@example.com" -e PARAMETER_OVERRIDE=false,false  -e DEPLOY_CONTEXT=test-app -v ./webapps/test-app:/usr/local/tomcat/webapps/test-app myquartz/tomcat-xslt:9-jdk11
 ~~~
 
 It will produce the Context configuration as the file **conf/Catalina/localhost/test-app.xml**:
@@ -196,7 +196,7 @@ It will produce the Context configuration as the file **conf/Catalina/localhost/
 Define docker environment name/values are:
 
 ~~~ shell
-$ docker run -d -p 8080:8080 -e ENVIRONMENT_NAME=minExemptions,maxExemptions -e ENVIRONMENT_TYPE=java.lang.Integer,java.lang.Integer -e ENVIRONMENT_VALUE=1,10 -e ENVIRONMENT_OVERRIDE=false,true  -e DEPLOY_CONTEXT=test-app -v /usr/local/share/tomcat/webapps/test-app:./webapps/test-app myquartz/tomcat-xslt:9-jdk11
+$ docker run -d -p 8080:8080 -e ENVIRONMENT_NAME=minExemptions,maxExemptions -e ENVIRONMENT_TYPE=java.lang.Integer,java.lang.Integer -e ENVIRONMENT_VALUE=1,10 -e ENVIRONMENT_OVERRIDE=false,true  -e DEPLOY_CONTEXT=test-app -v ./webapps/test-app:/usr/local/tomcat/webapps/test-app myquartz/tomcat-xslt:9-jdk11
 ~~~
 
 It will produce the Context configuration as the file **conf/Catalina/localhost/test-app.xml**:
@@ -271,7 +271,7 @@ The original CMD **catalina.sh** of Tomcat will be override by **catalina-xslt.s
 For example, to turn on remote debugging of JVM (the jpda debug) for the application war in `./webapps`, we can run `catalina-xslt.sh run jpda`, similar to:
 
 ~~~ shell
-$ docker run -it --rm -p 8000:8000 -p 8080:8080 -e JPDA_ADDRESS=*:8000 -v /usr/local/share/tomcat/webapps:./webapps myquartz/tomcat-xslt:9-jdk11 catalina-xslt.sh run jpda
+$ docker run -it --rm -p 8000:8000 -p 8080:8080 -e JPDA_ADDRESS=*:8000 -v ./webapps/test-app.war:/usr/local/tomcat/webapps/test-app.war myquartz/tomcat-xslt:9-jdk11 catalina-xslt.sh run jpda
 ~~~
 
 then connect to docker-host:8000 by a JPDA debugger.
@@ -279,7 +279,7 @@ then connect to docker-host:8000 by a JPDA debugger.
 If you replace the command line back to `catalina.sh run`, you will run the original version of [tomcat container image](https://hub.docker.com/_/tomcat) instead:
 
 ~~~ shell
-$ docker run -it --rm -p 8000:8000 -p 8080:8080 -e JPDA_ADDRESS=*:8000 -v /usr/local/share/tomcat/webapps:./webapps myquartz/tomcat-xslt:9-jdk11 catalina.sh run
+$ docker run -it --rm -p 8000:8000 -p 8080:8080 -e JPDA_ADDRESS=*:8000 -v ./webapps/test-app.war:/usr/local/tomcat/webapps/test-app.war myquartz/tomcat-xslt:9-jdk11 catalina.sh run
 ~~~
 
 # The prebuilt images
