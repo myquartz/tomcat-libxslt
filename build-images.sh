@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo Build tomcat images with libxslt or xsltproc, CDI 2 and CXF support for 9 and above
+echo Build tomcat images with libxslt or xsltproc, CDI 2 and CXF support for Tomcat 9 and above
 LIST=$1
 CDILIST=$2
 
@@ -22,12 +22,12 @@ fi
 
 if [ -r "./profile.conf" ]; then
         source ./profile.conf
-        export REGISTRY_URL USING_BUILDX MY_DOCKER_REGISTRY BUILD_PLATFORM TAG_POSTFIX LATEST_TAG
+        export REGISTRY_URL USING_BUILDX MY_DOCKER_REGISTRY BUILD_PLATFORM TAG_POSTFIX LATEST_TAG MAVEN_BASE_IMAGE TOMCAT_BASE_IMAGE
 fi
 
-#echo "Loading tomcat source from GitHub"
-#
-#docker run --rm -it -v tomcatwork:/root maven:3.8 bash -c "mkdir -p /root/tomcat-src && cd /root/tomcat-src && git clone https://github.com/apache/tomcat.git"
+#This var allowes us to use another base
+MAVENBASE=${MAVEN_BASE_IMAGE:-maven}
+TOMCATBASE=${TOMCAT_BASE_IMAGE:-tomcat}
 
 for cdi in $CDILIST; do
 for t in $LIST
@@ -71,14 +71,15 @@ if [ "$VER" != "" ]; then
 OUT_DIR=`pwd`/build
 mkdir -p $OUT_DIR
 
-docker run --rm -v tomcat-src:/opt/tomcat-src maven:$MAVEN_TAG sh -c "cd /opt/tomcat-src && [ ! -e tomcat ] && git clone https://github.com/apache/tomcat.git"
+docker run --rm -v tomcat-src:/opt/tomcat-src $MAVENBASE:$MAVEN_TAG sh -c "cd /opt/tomcat-src && [ ! -e tomcat ] && git clone https://github.com/apache/tomcat.git"  || exit $?
 
 echo "Running build for $VER"
 
-docker run --rm -i -v tomcat-src:/opt/tomcat-src -v m2cache:/root/.m2 maven:$MAVEN_TAG sh -c \
-	"cd /opt/tomcat-src/tomcat && [ ! -e /opt/tomcat-src/$VER ] && git reset --hard && git checkout $VER && sed -i 's/<release>1.8<\/release>//' modules/owb/pom.xml && mvn $JD1 $JD2 clean install -q -f modules/owb && sed -i 's/<version>3.5.3/<version>3.5.5/' modules/cxf/pom.xml && mvn $JD1 $JD2 clean install -q -f modules/cxf && tar -vcf /opt/tomcat-src/$VER modules/owb/target/tomcat-owb-*.jar modules/cxf/target/tomcat-cxf-*.jar"
+docker run --rm -i -v tomcat-src:/opt/tomcat-src -v m2cache:/root/.m2 $MAVENBASE:$MAVEN_TAG sh -c \
+	"cd /opt/tomcat-src/tomcat && [ ! -e /opt/tomcat-src/$VER ] && git reset --hard && git checkout $VER && sed -i 's/<release>1.8<\/release>//' modules/owb/pom.xml && mvn $JD1 $JD2 clean install -q -f modules/owb && sed -i 's/<version>3.5.3/<version>3.5.5/' modules/cxf/pom.xml && mvn $JD1 $JD2 clean install -q -f modules/cxf && tar -vcf /opt/tomcat-src/$VER modules/owb/target/tomcat-owb-*.jar modules/cxf/target/tomcat-cxf-*.jar" \
+ 	 || exit $?
 
-docker run -d --rm --name cp-$VER -v tomcat-src:/opt/tomcat-src maven:$MAVEN_TAG sh -c "sleep 20"
+docker run -d --rm --name cp-$VER -v tomcat-src:/opt/tomcat-src $MAVENBASE:$MAVEN_TAG sh -c "sleep 20"
 
 docker cp cp-$VER:/opt/tomcat-src/$VER $OUT_DIR/$VER.tar && mkdir -p $OUT_DIR/$VER && tar -C $OUT_DIR/$VER -vxf $OUT_DIR/$VER.tar
 
@@ -93,7 +94,7 @@ COPY_CXF_FILES=
 fi
 
 envsubst > Dockerfile <<EOF
-FROM tomcat:$t
+FROM $TOMCATBASE:$t
 LABEL maintainer="myquartz@gmail.com"
 
 RUN $INSTALL_CMD
@@ -160,6 +161,17 @@ ENV CHANNEL_SEND_OPTIONS=
 
 ENV CDI_ENABLE=
 
+ENV RESOURCE_NAME=
+ENV RESOURCE_TYPE=
+ENV RESOURCE_FACTORY=
+
+ENV PARAMETER_NAME=
+ENV PARAMETER_VALUE=
+
+ENV ENVIRONMENT_NAME=
+ENV ENVIRONMENT_TYPE=
+ENV ENVIRONMENT_VALUE=
+
 ENV TOMCAT_HTTP_PORT=
 ENV TOMCAT_HTTPS_PORT=
 ENV TOMCAT_AJP_PORT=
@@ -197,11 +209,11 @@ if [ "$REGISTRY_URL" != "" ]; then
 fi
 
 if [ "$IMAGE_TAG1" != "" ]; then
-  docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} $LATEST_OPT1 $LATEST_OPT2 -t "$IMAGE_TAG1" -t "$IMAGE_TAG" .
+  docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} $LATEST_OPT1 $LATEST_OPT2 -t "$IMAGE_TAG1" -t "$IMAGE_TAG" . || exit $?
 elif [ "$USING_BUILDX" != "" ]; then
-	docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} $LATEST_OPT1 $LATEST_OPT2 -t "$IMAGE_TAG" .
+	docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} $LATEST_OPT1 $LATEST_OPT2 -t "$IMAGE_TAG" . || exit $?
 else
-	docker build -q -t "${IMAGE_TAG}${TAG_POSTFIX}" $LATEST_OPT1 $LATEST_OPT2 .
+	docker build -q -t "${IMAGE_TAG}${TAG_POSTFIX}" $LATEST_OPT1 $LATEST_OPT2 . || exit $?
 	if [ "$PUSH" = "yes" ]; then
  		docker push -q "${IMAGE_TAG}${TAG_POSTFIX}"
 		[ "$LATEST_OPT1" != "" ] && docker push -q $LATEST_OPT1
