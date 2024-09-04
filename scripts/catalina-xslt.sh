@@ -92,8 +92,9 @@ if [ "$RESOURCE_NAME" != "" ]; then
 	IFS=',' read -r -a RES_NAME <<< "$RESOURCE_NAME"
 	IFS=',' read -r -a RES_TYPE <<< "$RESOURCE_TYPE"
  	IFS=',' read -r -a RES_FACTORY <<< "$RESOURCE_FACTORY"
-  	IFS=',' read -r -a RES_SHARE <<< "$RESOURCE_SHARE"
+  	IFS=',' read -r -a RES_AUTH <<< "$RESOURCE_AUTH"
    	IFS=',' read -r -a RES_SINGLETON <<< "$RESOURCE_SINGLETON"
+        IFS=',' read -r -a RES_SCOPE <<< "$RESOURCE_SCOPE"
     	IFS=',' read -r -a RES_CLOSE_METHOD <<< "$RESOURCE_CLOSE_METHOD"
      	IFS=',' read -r -a RES_DESCRIPTION <<< "$RESOURCE_DESCRIPTION"
       
@@ -102,7 +103,7 @@ if [ "$RESOURCE_NAME" != "" ]; then
 		if [ "${RES_NAME[$key]}" != "" -a "${RES_TYPE[$key]}" != "" -a "${RES_FACTORY[$key]}" != "" -a -e "context-any-resource.xsl" ]; then
 			echo "Merging context Resource for ${RES_NAME[$key]} type ${RES_TYPE[$key]}"
 			xsltproc --param RESOURCE_NAME "'${RES_NAME[$key]}'" --param type_className \"${RES_TYPE[$key]}\" --param factory_className \"${RES_FACTORY[$key]}\" \
-		 		--param auth_Application \"${RES_SHARE[$key]}\" --param singleton \"${RES_SINGLETON[$key]}\" \
+		 		--param auth_Application \"${RES_AUTH[$key]}\" --param singleton \"${RES_SINGLETON[$key]}\" \
 		   		--param scope_Unshareable \"${RES_SCOPE[$key]}\" --param closeMethod_name \"${RES_CLOSE_METHOD[$key]}\" \
 		   		--param description \"${RES_DESCRIPTION[$key]}\" context-any-resource.xsl context-output.xml > context-temp.xml
 			[ -s context-temp.xml ] && mv -f context-temp.xml context-output.xml
