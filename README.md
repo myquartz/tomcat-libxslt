@@ -1,3 +1,5 @@
+
+
 # The tomcat-libxslt container build
 
 This source repository contains building scripts for Apache Tomcat with LibXSLT for XML configuration mangling. Tomcat's main configuration files are server.xml, tomcat-users.xml, Catalina/localhost/your-app.xml... so it is best to use xsltproc to manipulate them.
@@ -168,7 +170,7 @@ It will produce the Context configuration as the file **conf/Catalina/localhost/
 <Context>
 <Resource name="mail/Session" auth="Container" type="javax.mail.Session" factory="your.factory.ClassName" auth="Application" scope="Shareable" />
 </Context>
-~~
+~~~
 
 ### Context parameters
 
@@ -185,7 +187,7 @@ It will produce the Context configuration as the file **conf/Catalina/localhost/
 <Parameter name="companyName" value="My Company, Incorporated" override="false"/>
 <Parameter name="companyEmail" value="contact@example.com" override="false"/>
 </Context>
-~~
+~~~
 
 > Note: `&#x002C;` will be the comma (,), `&#x0020;` is the space in XML, .
 
@@ -206,7 +208,7 @@ It will produce the Context configuration as the file **conf/Catalina/localhost/
 <Environment name="maxExemptions" value="10"
          type="java.lang.Integer" override="true"/>
 </Context>
-~~
+~~~
 
 ## Tomcat Cluster
 
