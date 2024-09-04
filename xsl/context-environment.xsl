@@ -42,10 +42,10 @@
       <xsl:attribute name="override">
         <xsl:choose>
 					<xsl:when test="'true' = $env_override or 'yes' = $env_override">
-						true
+						<xsl:value-of select="'true'" />
 					</xsl:when>
 					<xsl:otherwise>
-						false
+						<xsl:value-of select="'false'" />
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:attribute>
