@@ -71,17 +71,15 @@ if [ "$VER" != "" ]; then
 OUT_DIR=`pwd`/build
 mkdir -p $OUT_DIR
 
-docker run --rm -v tomcat-src:/opt/tomcat-src $MAVENBASE:$MAVEN_TAG sh -c "cd /opt/tomcat-src && [ ! -e tomcat ] && git clone https://github.com/apache/tomcat.git"  || exit $?
+docker run --rm -v tomcat-src:/opt/tomcat-src $MAVENBASE:$MAVEN_TAG sh -c "cd /opt/tomcat-src && [ ! -e tomcat ] && git clone https://github.com/apache/tomcat.git" || echo "Not need to clone"
 
-echo "Running build for $VER"
-
-docker run --rm -i -v tomcat-src:/opt/tomcat-src -v m2cache:/root/.m2 $MAVENBASE:$MAVEN_TAG sh -c \
-	"cd /opt/tomcat-src/tomcat && [ ! -e /opt/tomcat-src/$VER ] && git reset --hard && git checkout $VER && sed -i 's/<release>1.8<\/release>//' modules/owb/pom.xml && mvn $JD1 $JD2 clean install -q -f modules/owb && sed -i 's/<version>3.5.3/<version>3.5.5/' modules/cxf/pom.xml && mvn $JD1 $JD2 clean install -q -f modules/cxf && tar -vcf /opt/tomcat-src/$VER modules/owb/target/tomcat-owb-*.jar modules/cxf/target/tomcat-cxf-*.jar" \
- 	 || exit $?
-
-docker run -d --rm --name cp-$VER -v tomcat-src:/opt/tomcat-src $MAVENBASE:$MAVEN_TAG sh -c "sleep 20"
-
-docker cp cp-$VER:/opt/tomcat-src/$VER $OUT_DIR/$VER.tar && mkdir -p $OUT_DIR/$VER && tar -C $OUT_DIR/$VER -vxf $OUT_DIR/$VER.tar
+if [ ! -e "$OUT_DIR/$VER.tar" ]; then
+	echo "Running tomcat build for $VER"
+	docker run --rm -i -v tomcat-src:/opt/tomcat-src -v m2cache:/root/.m2 $MAVENBASE:$MAVEN_TAG sh -c \
+		"cd /opt/tomcat-src/tomcat && [ ! -e /opt/tomcat-src/$VER ] && git reset --hard && git checkout $VER && sed -i 's/<release>1.8<\/release>//' modules/owb/pom.xml && mvn $JD1 $JD2 clean install -q -f modules/owb && sed -i 's/<version>3.5.3/<version>3.5.5/' modules/cxf/pom.xml && mvn $JD1 $JD2 clean install -q -f modules/cxf && tar -vcf /opt/tomcat-src/$VER modules/owb/target/tomcat-owb-*.jar modules/cxf/target/tomcat-cxf-*.jar"	
+	docker run -d --rm --name cp-$VER -v tomcat-src:/opt/tomcat-src $MAVENBASE:$MAVEN_TAG sh -c "sleep 20"
+	docker cp cp-$VER:/opt/tomcat-src/$VER $OUT_DIR/$VER.tar && mkdir -p $OUT_DIR/$VER && tar -C $OUT_DIR/$VER -vxf $OUT_DIR/$VER.tar
+fi
 
 ADD_CDI_SCRIPT="ADD xsl/server-cdi.xsl /usr/local/tomcat/"
 COPY_CDI_FILES="COPY "`ls build/$VER/modules/owb/target/tomcat-owb-*.jar | xargs echo -n`" /usr/local/tomcat/lib/"
