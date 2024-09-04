@@ -10,20 +10,20 @@ phases:
             - export QUIET=yes
             - export TAG_POSTFIX="-${ARCH}"
             - export LATEST_TAG="10-jdk17-corretto-al2"
-            - VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17-corretto-al2}
-            - MY_DOCKER_REGISTRY=public.ecr.aws/${IMAGE_REPO_NAME}/
+            - export MY_DOCKER_REGISTRY=public.ecr.aws/${IMAGE_REPO_NAME}/
+            - export MAVEN_BASE_IMAGE=public.ecr.aws/docker/library/maven
+            - export TOMCAT_BASE_IMAGE=public.ecr.aws/docker/library/tomcat
+            - VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8 8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17 10-jdk17-corretto-al2 10-jdk21}
+            - CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17 10-jdk17-corretto-al2 10-jdk21}
             - sh build-images.sh "$VARIANT_TAGS" no
-            - echo Build CDI docker images started on `date`
-            - export QUIET=yes
-            - CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17-corretto-al2}
-            - MY_DOCKER_REGISTRY=public.ecr.aws/$IMAGE_REPO_NAME/
+            - echo Build CDI docker images started on `date`            
             - sh build-images.sh "$CDI_VARIANT_TAGS" yes
     post_build:
         commands:
             - echo Build completed on `date`
             - echo Pushing the Docker images...
-            - VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17-corretto-al2}
-            - CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17-corretto-al2}
+            - VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8 8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17 10-jdk17-corretto-al2 10-jdk21}
+            - CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17 10-jdk17-corretto-al2 10-jdk21}
             - for v in $VARIANT_TAGS; do docker push -q public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:${v}-${ARCH} ; done
             - docker push -q public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt:latest-${ARCH}
             - for v in $CDI_VARIANT_TAGS; do docker push -q public.ecr.aws/$IMAGE_REPO_NAME/tomcat-xslt-cdi:${v}-${ARCH} ; done
