@@ -148,6 +148,66 @@ When defining these parameters, the Resource element will be added/updated to co
 </Context>
 ~~~
 
+## Other Context's resources
+
+The application archive (war) can be configured by some others resources, there are more than one names separated by comma, it likes:
+
+### Generic resources
+
+> Note: EXPERIMENTAL, the Resource is only support by 7 attributes (name, type, factory, auth, scope, singleton, share) due to the limitation of static attribute name of XSL. You must implement an Factory class to build the resource instance as the guide here [Adding_Custom_Resource_Factories](https://tomcat.apache.org/tomcat-9.0-doc/jndi-resources-howto.html#Adding_Custom_Resource_Factories)
+
+Define docker environment name/values are:
+
+~~~ shell
+$ docker run -d -p 8080:8080 -e RESOURCE_NAME=mail/Session -e RESOURCE_TYPE=javax.mail.Session -e RESOURCE_FACTORY=your.factory.ClassName -e RESOURCE_AUTH=Application -e DEPLOY_CONTEXT=test-app -v /usr/local/share/tomcat/webapps/test-app:./webapps/test-app myquartz/tomcat-xslt:9-jdk11
+~~~
+
+It will produce the Context configuration as the file **conf/Catalina/localhost/test-app.xml**:
+
+~~~ xml
+<Context>
+<Resource name="mail/Session" auth="Container" type="javax.mail.Session" factory="your.factory.ClassName" auth="Application" scope="Shareable" />
+</Context>
+~~
+
+### Context parameters
+
+Define docker parameter name/values are:
+
+~~~ shell
+$ docker run -d -p 8080:8080 -e PARAMETER_NAME=companyName,companyEmail -e PARAMETER_VALUE="My&#x0020;Company&#x002C;&#x0020;Incorporated,contact@example.com" -e PARAMETER_OVERRIDE=false,false  -e DEPLOY_CONTEXT=test-app -v /usr/local/share/tomcat/webapps/test-app:./webapps/test-app myquartz/tomcat-xslt:9-jdk11
+~~~
+
+It will produce the Context configuration as the file **conf/Catalina/localhost/test-app.xml**:
+
+~~~ xml
+<Context>
+<Parameter name="companyName" value="My Company, Incorporated" override="false"/>
+<Parameter name="companyEmail" value="contact@example.com" override="false"/>
+</Context>
+~~
+
+> Note: `&#x002C;` will be the comma (,), `&#x0020;` is the space in XML, .
+
+### Environment entries
+
+Define docker environment name/values are:
+
+~~~ shell
+$ docker run -d -p 8080:8080 -e ENVIRONMENT_NAME=minExemptions,maxExemptions -e ENVIRONMENT_TYPE=java.lang.Integer,java.lang.Integer -e ENVIRONMENT_VALUE=1,10 -e ENVIRONMENT_OVERRIDE=false,true  -e DEPLOY_CONTEXT=test-app -v /usr/local/share/tomcat/webapps/test-app:./webapps/test-app myquartz/tomcat-xslt:9-jdk11
+~~~
+
+It will produce the Context configuration as the file **conf/Catalina/localhost/test-app.xml**:
+
+~~~ xml
+<Context>
+<Environment name="minExemptions" value="1"
+         type="java.lang.Integer" override="false"/>
+<Environment name="maxExemptions" value="10"
+         type="java.lang.Integer" override="true"/>
+</Context>
+~~
+
 ## Tomcat Cluster
 
 The Apache Tomcat additional supports Cluster feature for synchronization of session data between the tomcat instances.
@@ -204,13 +264,21 @@ When CDI enable, together with added libraries, the Server element in server.xml
 
 # Catalina run command line
 
-The original CMD **catalina.sh** of Tomcat will be override by **catalina-xslt.sh**. The catalina-xslt.sh produces context.xml and server.xml as environment variables defined, then it executes the original catalina.sh with the same arguments. So to turn on remote debugging of JVM (the jpda debug) for the application war in `./webapps`, please run command:
+The original CMD **catalina.sh** of Tomcat will be override by **catalina-xslt.sh**. The catalina-xslt.sh produces context.xml and server.xml as environment variables defined, then it executes the original catalina.sh with the same arguments.
+
+For example, to turn on remote debugging of JVM (the jpda debug) for the application war in `./webapps`, we can run `catalina-xslt.sh run jpda`, similar to:
 
 ~~~ shell
-$ docker run -it --rm -p 8000:8000 -p 8080:8080 -e JPDA_ADDRESS=*:8000 -v /usr/local/share/tomcat/webapps:./webapps myquartz/tomcat-xslt:9-jdk11
+$ docker run -it --rm -p 8000:8000 -p 8080:8080 -e JPDA_ADDRESS=*:8000 -v /usr/local/share/tomcat/webapps:./webapps myquartz/tomcat-xslt:9-jdk11 catalina-xslt.sh run jpda
 ~~~
 
 then connect to docker-host:8000 by a JPDA debugger.
+
+If you replace the command line back to `catalina.sh run`, you will run the original version of [tomcat container image](https://hub.docker.com/_/tomcat) instead:
+
+~~~ shell
+$ docker run -it --rm -p 8000:8000 -p 8080:8080 -e JPDA_ADDRESS=*:8000 -v /usr/local/share/tomcat/webapps:./webapps myquartz/tomcat-xslt:9-jdk11 catalina.sh run
+~~~
 
 # The prebuilt images
 
