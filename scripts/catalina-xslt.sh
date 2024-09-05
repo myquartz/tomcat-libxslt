@@ -150,30 +150,31 @@ fi
 #TCP Simple Cluster
 if [ "$CLUSTER" = "DeltaManager" -o "$CLUSTER" = "BackupManager" ]; then
   if [ -e "server-cluster.xsl" ]; then
-  if [ "$MCAST_ADDRESS" != "" ]; then
+  	LASTC=${HOSTNAME: -1}
+	if [ -n "$MCAST_ADDRESS" ]; then
 		echo "Creating Cluster of $CLUSTER Multi-cast=$MCAST_ADDRESS"
 		xsltproc --param CHANNEL_SEND_OPTIONS "'$CHANNEL_SEND_OPTIONS'" --param CLUSTER "'$CLUSTER'" --param RECEIVE_PORT "'${RECEIVE_PORT:-5000}'" --param REPLICATION_FILTER "'$REPLICATION_FILTER'" --param MCAST_ADDRESS "'${MCAST_ADDRESS}'" --param MCAST_PORT "'${MCAST_PORT:-45564}'" --param MCAST_BIND "'${MCAST_BIND}'" server-cluster.xsl server-output.xml > server-temp.xml 
-  elif [ "$DNS_MEMBERSHIP_SERVICE_NAME" != "" -o "$KUBERNETES_NAMESPACE" != "" -o "$OPENSHIFT_KUBE_PING_NAMESPACE" != "" ]; then
+	elif [ -n "$DNS_MEMBERSHIP_SERVICE_NAME" -o -n "$KUBERNETES_NAMESPACE" -o -n "$OPENSHIFT_KUBE_PING_NAMESPACE" ]; then
 		echo "Creating Cluster of $CLUSTER Kubernes=$KUBERNETES_NAMESPACE or $OPENSHIFT_KUBE_PING_NAMESPACE, DNS=$DNS_MEMBERSHIP_SERVICE_NAME"
 		xsltproc --param CHANNEL_SEND_OPTIONS "'$CHANNEL_SEND_OPTIONS'" --param CLUSTER "'$CLUSTER'" --param RECEIVE_PORT "'${RECEIVE_PORT:-5001}'" --param REPLICATION_FILTER "'$REPLICATION_FILTER'" --param KUBERNETES_NAMESPACE "'$KUBERNETES_NAMESPACE'" --param OPENSHIFT_KUBE_PING_NAMESPACE "'$OPENSHIFT_KUBE_PING_NAMESPACE'" --param DNS_MEMBERSHIP_SERVICE_NAME "'$DNS_MEMBERSHIP_SERVICE_NAME'" server-cluster.xsl server-output.xml > server-temp.xml 
-  elif [[ $HOSTNAME =~ "[1-6]$" ]]; then
-		echo "Creating Cluster of $CLUSTER static Replicas=$REPLICAS for $HOSTNAME"
+	elif [ -n "$LASTC" -a "$LASTC" -eq "$LASTC" -a $LASTC -ge 1 -a $LASTC -le 6 ]; then
+		echo "Creating Cluster of $CLUSTER static Replicas=$REPLICAS for $HOSTNAME (node index $LASTC)"
 		xsltproc --param CHANNEL_SEND_OPTIONS "'$CHANNEL_SEND_OPTIONS'" --param CLUSTER "'$CLUSTER'" --param HOSTNAME "'${HOSTNAME}'" --param REPLICAS "'${REPLICAS:-2}'" --param RECEIVE_PORT "'${RECEIVE_PORT:-5002}'" --param REPLICATION_FILTER "'$REPLICATION_FILTER'" server-cluster.xsl server-output.xml > server-temp.xml 
-  else
-    echo "Can not create cluster because not match requirement"
-  fi
+	else
+		echo "Can not create cluster Replicas=$REPLICAS because not match requirement of hostname=$HOSTNAME"
+	fi
 	[ -s server-temp.xml ] && mv -f server-temp.xml server-output.xml
   fi
 fi
 
 #CDI enable (9.x or 10x)
-if [ "$CDI_ENABLE" != "" -a -e "server-cdi.xsl" ]; then
+if [ -n "$CDI_ENABLE" -a -e "server-cdi.xsl" ]; then
 	xsltproc --param CDI_ENABLE "'$CDI_ENABLE'" server-cdi.xsl server-output.xml > server-temp.xml 
 	[ -s server-temp.xml ] && mv -f server-temp.xml server-output.xml
 fi
 
 #Tomcat Port manipulation
-if [ "$TOMCAT_HTTP_PORT" != "" -o "$TOMCAT_HTTPS_PORT" != ""  -o "$TOMCAT_AJP_PORT" != "" ]; then
+if [ -n "$TOMCAT_HTTP_PORT" -o -n "$TOMCAT_HTTPS_PORT" -o -n "$TOMCAT_AJP_PORT" ]; then
   if [ -e "server-cluster.xsl" ]; then
 	echo "Changing Ports: HTTP $TOMCAT_HTTP_PORT HTTPS $TOMCAT_HTTPS_PORT AJP $TOMCAT_AJP_PORT"
 	xsltproc --param TOMCAT_HTTP_PORT "'${TOMCAT_HTTP_PORT:-8080}'" --param TOMCAT_HTTPS_PORT "'${TOMCAT_HTTPS_PORT}'" --param TOMCAT_AJP_PORT "'${TOMCAT_AJP_PORT}'" --param CONNECTOR_MAX_THREADS "'${CONNECTOR_MAX_THREADS}'" server-port.xsl server-output.xml > server-temp.xml 
@@ -181,7 +182,7 @@ if [ "$TOMCAT_HTTP_PORT" != "" -o "$TOMCAT_HTTPS_PORT" != ""  -o "$TOMCAT_AJP_PO
   fi
 fi
 
-if [ "$DEPLOY_CONTEXT" != "" -a -e "context-output.xml" ]; then
+if [ -n "$DEPLOY_CONTEXT" -a -e "context-output.xml" ]; then
 	mkdir -p conf/Catalina/localhost
 	mv context-output.xml conf/Catalina/localhost/$DEPLOY_CONTEXT.xml 
 fi
