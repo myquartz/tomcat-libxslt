@@ -47,6 +47,8 @@ public class JavaXSLTProcess {
         		String value = args[pi+2];
         		if(value.length()>=2 && value.startsWith("'") && value.endsWith("'"))
         			value = value.substring(1, value.length()-1);
+			else if(value.length()>=2 && value.startsWith("\"") && value.endsWith("\""))
+        			value = value.substring(1, value.length()-1);
         			
         		parameters.put(name, value);
         		pi += 2;
