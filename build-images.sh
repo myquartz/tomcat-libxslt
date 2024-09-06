@@ -47,7 +47,7 @@ MAVEN_TAG=3-eclipse-temurin-11
 JD1=-Dmaven.compiler.source=11
 JD2=-Dmaven.compiler.target=11
 if [[ "$t" == "8.5"* ]]; then
-	VER=8.5.x
+	VER=
 	MAVEN_TAG=3.8-eclipse-temurin-8
 	JD1=-Dmaven.compiler.source=1.8
 	JD2=-Dmaven.compiler.target=1.8
