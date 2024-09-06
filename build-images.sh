@@ -97,11 +97,11 @@ fi
 if [ ! -e "$OUT_DIR/xsltproc.tar" ]; then
 	echo "Run build for xsltproc by Java Transform inside Docker (copy source into volume)"
  	tar -cf "$OUT_DIR/xsltproc-src.tar" tools/java_xsltproc
- 	docker run -d --rm --name cp-source -v tomcat-libxslt-src:/opt/tomcat-libxst-src $MAVENBASE:3.8-eclipse-temurin-8 sh -c "sleep 20"
+ 	docker run -d --rm --name cp-source -v tomcat-libxslt-src:/opt/tomcat-libxslt-src $MAVENBASE:3.8-eclipse-temurin-8 sh -c "sleep 20"
   	docker cp "$OUT_DIR/xsltproc-src.tar" cp-source:/opt/tomcat-libxslt-src/
 	docker run --rm -i -v tomcat-libxslt-src:/opt/tomcat-libxslt-src -v m2cache:/root/.m2 $MAVENBASE:3.8-eclipse-temurin-8 sh -c \
 		"cd /opt/tomcat-libxslt-src/ && [ ! -e tools/java_xsltproc/target ] && tar -xf xsltproc-src.tar  && mvn package -q -f tools/java_xsltproc && cd tools/java_xsltproc/target && tar -vcf ../../../xsltproc.tar xslt-process-*.jar"
-  	docker run -d --rm --name cp-target -v tomcat-libxslt-src:/opt/tomcat-libxst-src $MAVENBASE:3.8-eclipse-temurin-8 sh -c "sleep 20"
+  	docker run -d --rm --name cp-target -v tomcat-libxslt-src:/opt/tomcat-libxslt-src $MAVENBASE:3.8-eclipse-temurin-8 sh -c "sleep 20"
   	docker cp cp-target:/opt/tomcat-libxslt-src/xsltproc.tar "$OUT_DIR/xsltproc.tar" 
         tar -xf "$OUT_DIR/xsltproc.tar"
 fi
