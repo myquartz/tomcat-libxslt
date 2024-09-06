@@ -93,7 +93,7 @@ public class JavaXSLTProcess {
             		List<String> lines = Files.readAllLines(Paths.get(p.substring(bundlePrefix.length())));
             		for(String l:lines) {
             			l = l.trim();
-            			if(l.isBlank() || l.startsWith("#"))
+            			if(l.isEmpty() || l.startsWith("#"))
             				continue;
             			if(transformer == null) {
             				transformer = factory.newTransformer(new StreamSource(new FileInputStream(l)));
