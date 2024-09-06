@@ -1,0 +1,150 @@
+package vietfi;
+
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
+/**
+ * Java XSLT processor,
+ * Written by Tran Thach Anh myquartz at gmail.com
+ * 
+ */
+public class JavaXSLTProcess {
+
+	public static void main(String[] args) {
+        boolean useSaxon = false;
+        Map<String, String> parameters = new LinkedHashMap<>();
+        
+        int pi = 0;
+        while (pi < args.length-3) {
+        	if("--using-saxon".equals(args[pi]))
+        		useSaxon = true;
+        	else if("--param".equals(args[pi])) {
+        		String name = args[pi+1];
+        		String value = args[pi+2];
+        		if(value.length()>=2 && value.startsWith("'") && value.endsWith("'"))
+        			value = value.substring(1, value.length()-1);
+			else if(value.length()>=2 && value.startsWith("\"") && value.endsWith("\""))
+        			value = value.substring(1, value.length()-1);
+        			
+        		parameters.put(name, value);
+        		pi += 2;
+        	}
+        	else {
+        		break;
+        	}
+        	pi++;
+        }
+        
+        // Check for correct number of arguments
+        if (args.length - pi < 3) {
+            System.err.println("Usage: JavaXSLTProcess [--using-saxon] [--param <NAME> <VALUE>]... <source.xml> <xsl1.xsl> <xsl2.xsl> --bundle=<xsl-with-param.txt> ... <output.xml>");
+            System.err.println("xsl-with-param.txt: a file text of definition for specific transformation step with the following lines:\n"
+            		+"  xsl3.xsl (XSL file name at the first non-empty line)\n"
+            		+"  PARAM_NAME=PARAM_VALUE\n"
+            		+"  PARAM_NAME=PARAM_VALUE\n"
+            		);
+            System.exit(1);
+        }
+        
+        final String bundlePrefix = "--bundle=";
+      
+        String sourceFile = args[pi];
+        String outputFile = args[args.length - 1];
+        String[] xsls = java.util.Arrays.copyOfRange(args, pi+1, args.length - 1);
+
+        try {
+        	TransformerFactory factory = useSaxon ? 
+                    TransformerFactory.newInstance("net.sf.saxon.TransformerFactoryImpl", JavaXSLTProcess.class.getClassLoader()) :
+                    TransformerFactory.newInstance();
+        	
+            // Load the source XML document
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            docFactory.setNamespaceAware(true);  // Important for XSLT processing
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+            Document document = docBuilder.parse(new File(sourceFile));
+
+            // Perform each XSLT transformation in the pipeline
+            for (String p : xsls) {            	
+            	Transformer transformer = null;
+                // Create a Transformer for the current XSLT
+            	if(p.startsWith(bundlePrefix)) {
+            		List<String> lines = Files.readAllLines(Paths.get(p.substring(bundlePrefix.length())));
+            		for(String l:lines) {
+            			l = l.trim();
+            			if(l.isEmpty() || l.startsWith("#"))
+            				continue;
+            			if(transformer == null) {
+            				transformer = factory.newTransformer(new StreamSource(new FileInputStream(l)));
+            				System.out.println("Transforming by "+ p+": XSL file "+l);
+            			}
+            			else {
+            				int spi = l.indexOf('=');
+            				if(spi < 0 || spi == l.length()-1) { //empty
+            					transformer.setParameter(l, "");
+            				}
+            				else {
+            					int nv = spi+1;
+            					while(nv < l.length() && Character.isWhitespace(l.charAt(nv)))
+            						nv++;
+            					transformer.setParameter(l.substring(0, spi).trim(), l.substring(nv));
+            				}
+            			}
+            		}
+            	}
+            	else {
+            		transformer = factory.newTransformer(new StreamSource(new FileInputStream(p)));
+            		System.out.println("Transforming by XSL file "+ p);
+            	}
+                
+                for(Map.Entry<String, String> e: parameters.entrySet())
+                	transformer.setParameter(e.getKey(), e.getValue());
+                
+                // Transform the current Document to a temporary output
+                DOMSource source = new DOMSource(document);
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                transformer.transform(source, new StreamResult(byteArrayOutputStream));
+
+                // Parse the temporary output into a new Document for the next stage
+                Document newDocument = docBuilder.parse(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
+                document = newDocument;
+            }
+
+            // Write the final transformed Document to the output file
+            Transformer transformer = factory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+            DOMSource source = new DOMSource(document);
+            StreamResult result = new StreamResult(new FileOutputStream(outputFile));
+            transformer.transform(source, result);
+
+            System.out.println("Transformation pipeline completed successfully.");
+        } catch (IOException | TransformerException | ParserConfigurationException | SAXException e) {
+            e.printStackTrace();
+            System.exit(2);
+        }
+    }
+}
