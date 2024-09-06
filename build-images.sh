@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo Build tomcat images with libxslt or xsltproc, CDI 2 and CXF support for Tomcat 9 and above
+echo Build tomcat images with java built-in XSLT, CDI 2 and CXF support for Tomcat 9 and above
 LIST=$1
 CDILIST=$2
 
@@ -43,11 +43,15 @@ else
 INSTALL_CMD='apt-get -q update && apt-get -q -y upgrade && apt-get -q install -y xsltproc curl && rm -rf /var/lib/apt/lists/*'
 fi
 
-if [ "$cdi" == "yes" ]; then
 MAVEN_TAG=3-eclipse-temurin-11
 JD1=-Dmaven.compiler.source=11
 JD2=-Dmaven.compiler.target=11
-if [[ "$t" == "9"* ]]; then
+if [[ "$t" == "8.5"* ]]; then
+	VER=8.5.x
+	MAVEN_TAG=3.8-eclipse-temurin-8
+	JD1=-Dmaven.compiler.source=1.8
+	JD2=-Dmaven.compiler.target=1.8
+elif [[ "$t" == "9"* ]]; then
 	VER=9.0.x
 	MAVEN_TAG=3.8-eclipse-temurin-8
 	JD1=-Dmaven.compiler.source=1.8
@@ -58,18 +62,18 @@ elif [[ "$t" == "10.1"* ]]; then
 	VER=10.1.x
 elif [[ "$t" == "11.0"* ]]; then
 	MAVEN_TAG=3-eclipse-temurin-17
-  JD1=-Dmaven.compiler.source=17
-  JD2=-Dmaven.compiler.target=17
+	JD1=-Dmaven.compiler.source=17
+	JD2=-Dmaven.compiler.target=17
 	VER=11.0.x
-fi
 else
 	VER=
 fi
 
-if [ "$VER" != "" ]; then
-
 OUT_DIR=`pwd`/build
 mkdir -p $OUT_DIR
+
+if [ "$cdi" == "yes" ]; then
+if [ "$VER" != "" ]; then
 
 docker run --rm -v tomcat-src:/opt/tomcat-src $MAVENBASE:$MAVEN_TAG sh -c "cd /opt/tomcat-src && [ ! -e tomcat ] && git clone https://github.com/apache/tomcat.git" || echo "Not need to clone"
 
@@ -91,11 +95,23 @@ ADD_CDI_SCRIPT=
 COPY_CXF_FILES=
 fi
 
+if [ ! -e "$OUT_DIR/xsltproc.tar" ]; then
+	echo "Run build for xsltproc by Java Transform inside Docker (copy source into volume)"
+ 	tar -cf "$OUT_DIR/xsltproc-src.tar" tools/java_xsltproc
+ 	docker run -d --rm --name cp-source -v tomcat-libxslt-src:/opt/tomcat-libxst-src $MAVENBASE:3.8-eclipse-temurin-8 sh -c "sleep 20"
+  	docker cp "$OUT_DIR/xsltproc-src.tar" cp-source:/opt/tomcat-libxslt-src/
+	docker run --rm -i -v tomcat-libxslt-src:/opt/tomcat-libxslt-src -v m2cache:/root/.m2 $MAVENBASE:3.8-eclipse-temurin-8 sh -c \
+		"cd /opt/tomcat-libxslt-src/ && [ ! -e tools/java_xsltproc/target ] && tar -xf xsltproc-src.tar  && mvn package -q -f tools/java_xsltproc && cd tools/java_xsltproc/target && tar -vcf ../../../xsltproc.tar xslt-process-*.jar"
+  	docker run -d --rm --name cp-target -v tomcat-libxslt-src:/opt/tomcat-libxst-src $MAVENBASE:3.8-eclipse-temurin-8 sh -c "sleep 20"
+  	docker cp cp-target:/opt/tomcat-libxslt-src/xsltproc.tar "$OUT_DIR/xsltproc.tar" 
+        tar -xf "$OUT_DIR/xsltproc.tar"
+fi
+
 envsubst > Dockerfile <<EOF
 FROM $TOMCATBASE:$t
 LABEL maintainer="myquartz@gmail.com"
 
-RUN $INSTALL_CMD
+#Do not install and update anymore RUN $INSTALL_CMD
 
 $COPY_CDI_FILES
 $COPY_CXF_FILES
@@ -114,6 +130,8 @@ ADD xsl/server-cluster.xsl /usr/local/tomcat/
 ADD xsl/server-port.xsl /usr/local/tomcat/
 
 $ADD_CDI_SCRIPT
+
+COPY $OUT_DIR/xslt-process-1.0-SNAPSHOT.jar /usr/local/tomcat/bin/xslt-process.jar
 
 RUN cp /usr/local/tomcat/conf/server.xml /usr/local/tomcat/server-orig.xml && chmod +x /usr/local/tomcat/bin/catalina-xslt.sh
 
