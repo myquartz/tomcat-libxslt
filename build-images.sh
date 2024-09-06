@@ -72,8 +72,7 @@ fi
 OUT_DIR=`pwd`/build
 mkdir -p $OUT_DIR
 
-if [ "$cdi" == "yes" ]; then
-if [ "$VER" != "" ]; then
+if [ "$cdi" == "yes" -a "$VER" != "" ]; then
 
 docker run --rm -v tomcat-src:/opt/tomcat-src $MAVENBASE:$MAVEN_TAG sh -c "cd /opt/tomcat-src && [ ! -e tomcat ] && git clone https://github.com/apache/tomcat.git" || echo "Not need to clone"
 
