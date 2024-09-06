@@ -103,8 +103,9 @@ if [ ! -e "$OUT_DIR/xsltproc.tar" ]; then
 		"cd /opt/tomcat-libxslt-src/ && [ ! -e tools/java_xsltproc/target ] && tar -xf xsltproc-src.tar  && mvn package -q -f tools/java_xsltproc && cd tools/java_xsltproc/target && tar -vcf ../../../xsltproc.tar xslt-process-*.jar"
   	docker run -d --rm --name cp-target -v tomcat-libxslt-src:/opt/tomcat-libxslt-src $MAVENBASE:3.8-eclipse-temurin-8 sh -c "sleep 20"
   	docker cp cp-target:/opt/tomcat-libxslt-src/xsltproc.tar "$OUT_DIR/xsltproc.tar" 
-        tar -xf "$OUT_DIR/xsltproc.tar"
 fi
+
+tar -C $OUT_DIR -vxf "$OUT_DIR/xsltproc.tar"
 
 envsubst > Dockerfile <<EOF
 FROM $TOMCATBASE:$t
