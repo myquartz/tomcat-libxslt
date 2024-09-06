@@ -131,7 +131,7 @@ ADD xsl/server-port.xsl /usr/local/tomcat/
 
 $ADD_CDI_SCRIPT
 
-COPY $OUT_DIR/xslt-process-1.0-SNAPSHOT.jar /usr/local/tomcat/bin/xslt-process.jar
+COPY build/xslt-process-1.0-SNAPSHOT.jar /usr/local/tomcat/bin/xslt-process.jar
 
 RUN cp /usr/local/tomcat/conf/server.xml /usr/local/tomcat/server-orig.xml && chmod +x /usr/local/tomcat/bin/catalina-xslt.sh
 
