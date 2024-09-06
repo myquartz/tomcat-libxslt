@@ -244,11 +244,13 @@ echo "generating context-based XSL: $CONTEXT_XSL"
 if [ -n "$DEPLOY_CONTEXT" -a -n "$INPUT_CONTEXT" -a -n "$CONTEXT_XSL" -a -e "$INPUT_CONTEXT" -a ! -e "conf/Catalina/localhost/$DEPLOY_CONTEXT.xml" ]; then
 	mkdir -p conf/Catalina/localhost
  	#XSL Processing
+  	[ -n "$DEBUG" ] && echo "CONTEXT_PARAMS $CONTEXT_PARAMS"
 	java -jar $JAR_PROC $CONTEXT_PARAMS $INPUT_CONTEXT $CONTEXT_XSL conf/Catalina/localhost/$DEPLOY_CONTEXT.xml
 fi
 
 echo "generating server-based XSL: $SERVER_XSL"
 if [ -n "$SERVER_XSL" -a -e "server-orig.xml" ]; then
+	[ -n "$DEBUG" ] && echo "SERVER_PARAMS $SERVER_PARAMS"
 	java -jar $JAR_PROC $SERVER_PARAMS server-orig.xml $SERVER_XSL conf/server.xml
  	#for faster next start time
  	mv "server-orig.xml" "server-orig.xml.bak"
