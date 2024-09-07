@@ -35,7 +35,7 @@ else
 fi
 
 JAR_PROC=/usr/local/tomcat/bin/xslt-process.jar
-XSLT_JAVA_OPTS=
+XSLT_JAVA_OPTS="-Xms64m -Xmx64m"
 
 #Using Epsilon from JDK11 for reducing XSLT processing for GC
 if [ -n "$JRE_VERSION" -a "$JRE_VERSION" != "jre8" ]; then
