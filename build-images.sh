@@ -33,14 +33,17 @@ for cdi in $CDILIST; do
 for t in $LIST
 do
 
-echo Building $t cdi=$cdi
+jdk_version=$(echo "$t" | grep -oP 'jdk\d+')
+jre_version=$(echo "$t" | grep -oP 'jre\d+')
+
+echo Building $t cdi=$cdi with jdk=$jdk_version
 
 if [[ "$t" == *"alpine" ]]; then
-INSTALL_CMD='apk add --no-cache libxslt curl'
+INSTALL_CMD='RUN apk add --no-cache libxslt'
 elif [[ "$t" == *"corretto"* ]]; then
-INSTALL_CMD='yum -q -y update && yum install -q -y libxslt && yum clean all'
+INSTALL_CMD='RUN yum -q -y update && yum install -q -y libxslt && yum clean all'
 else
-INSTALL_CMD='apt-get -q update && apt-get -q -y upgrade && apt-get -q install -y xsltproc curl && rm -rf /var/lib/apt/lists/*'
+INSTALL_CMD='RUN apt-get -q update && apt-get -q -y upgrade && apt-get -q install -y xsltproc && rm -rf /var/lib/apt/lists/*'
 fi
 
 MAVEN_TAG=3-eclipse-temurin-11
@@ -135,6 +138,9 @@ $ADD_CDI_SCRIPT
 COPY build/xslt-process-1.0-SNAPSHOT.jar /usr/local/tomcat/bin/xslt-process.jar
 
 RUN cp /usr/local/tomcat/conf/server.xml /usr/local/tomcat/server-orig.xml && chmod +x /usr/local/tomcat/bin/catalina-xslt.sh
+
+ENV JDK_VERSION=$jdk_version
+ENV JRE_VERSION=$jre_version
 
 ENV DEPLOY_CONTEXT=
 
