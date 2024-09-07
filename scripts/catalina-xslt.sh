@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo catalina-xslt.sh starting
+echo catalina-xslt.sh starting at `date`
 echo Configuration will produce for LDAP_URL="$LDAP_URL" REALM_USERTAB="$REALM_USERTAB" DB_SOURCENAME="$DB_SOURCENAME" GLOBAL_DB_SOURCENAME="$GLOBAL_DB_SOURCENAME" DB_URL="$DB_URL" CDI_ENABLE="$CDI_ENABLE" TOMCAT_HTTP_PORT="$TOMCAT_HTTP_PORT"
 
 if [ -e "webapps/$DEPLOY_CONTEXT.war" ]; then
@@ -35,6 +35,14 @@ else
 fi
 
 JAR_PROC=/usr/local/tomcat/bin/xslt-process.jar
+XSLT_JAVA_OPTS=
+
+#Using Epsilon from JDK11 for reducing XSLT processing for GC
+if [ -n "$JRE_VERSION" -a "$JRE_VERSION" != "jre8" ]; then
+	XSLT_JAVA_OPTS="-XX:+UseEpsilonGC"
+elif if [ -n "$JDK_VERSION" -a "$JDK_VERSION" != "jdk8" ]; then
+	XSLT_JAVA_OPTS="-XX:+UseEpsilonGC"
+fi
 
 CONTEXT_PARAMS=
 CONTEXT_XSL=
@@ -245,14 +253,14 @@ if [ -n "$DEPLOY_CONTEXT" -a -n "$INPUT_CONTEXT" -a -n "$CONTEXT_XSL" -a -e "$IN
 	mkdir -p conf/Catalina/localhost
  	#XSL Processing
   	[ -n "$DEBUG" ] && echo "CONTEXT_PARAMS $CONTEXT_PARAMS"
-	java -jar $JAR_PROC $CONTEXT_PARAMS $INPUT_CONTEXT $CONTEXT_XSL conf/Catalina/localhost/$DEPLOY_CONTEXT.xml
+	java $XSLT_JAVA_OPTS -jar $JAR_PROC $CONTEXT_PARAMS $INPUT_CONTEXT $CONTEXT_XSL conf/Catalina/localhost/$DEPLOY_CONTEXT.xml
 fi
 
 echo "generating server-based XSL: $SERVER_XSL"
 if [ -n "$SERVER_XSL" -a -e "server-orig.xml" ]; then
 	[ -n "$DEBUG" ] && echo "SERVER_PARAMS $SERVER_PARAMS"
-	java -jar $JAR_PROC $SERVER_PARAMS server-orig.xml $SERVER_XSL conf/server.xml
- 	#for faster next start time
+	java $XSLT_JAVA_OPTS -jar $JAR_PROC $SERVER_PARAMS server-orig.xml $SERVER_XSL conf/server.xml
+ 	#mark a change for faster next start time
  	mv "server-orig.xml" "server-orig.xml.bak"
 fi
 
