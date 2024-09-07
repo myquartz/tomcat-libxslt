@@ -40,7 +40,7 @@ XSLT_JAVA_OPTS=
 #Using Epsilon from JDK11 for reducing XSLT processing for GC
 if [ -n "$JRE_VERSION" -a "$JRE_VERSION" != "jre8" ]; then
 	XSLT_JAVA_OPTS="-XX:+UseEpsilonGC"
-elif if [ -n "$JDK_VERSION" -a "$JDK_VERSION" != "jdk8" ]; then
+elif [ -n "$JDK_VERSION" -a "$JDK_VERSION" != "jdk8" ]; then
 	XSLT_JAVA_OPTS="-XX:+UseEpsilonGC"
 fi
 
