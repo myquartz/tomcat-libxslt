@@ -97,6 +97,7 @@ fi
 if [ ! -e "$OUT_DIR/xsltproc.tar" ]; then
 	echo "Run build for xsltproc by Java Transform inside Docker (copy source into volume)"
  	tar -cf "$OUT_DIR/xsltproc-src.tar" tools/java_xsltproc
+  	docker pull $MAVENBASE:3.8-eclipse-temurin-8
  	docker run -d --rm --name cp-source -v tomcat-libxslt-src:/opt/tomcat-libxslt-src $MAVENBASE:3.8-eclipse-temurin-8 sh -c "sleep 20"
   	docker cp "$OUT_DIR/xsltproc-src.tar" cp-source:/opt/tomcat-libxslt-src/
 	docker run --rm -i -v tomcat-libxslt-src:/opt/tomcat-libxslt-src -v m2cache:/root/.m2 $MAVENBASE:3.8-eclipse-temurin-8 sh -c \
