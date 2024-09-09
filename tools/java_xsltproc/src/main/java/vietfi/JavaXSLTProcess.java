@@ -1,8 +1,5 @@
 package vietfi;
 
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -20,6 +17,7 @@ import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
@@ -125,12 +123,11 @@ public class JavaXSLTProcess {
                 
                 // Transform the current Document to a temporary output
                 DOMSource source = new DOMSource(document);
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                transformer.transform(source, new StreamResult(byteArrayOutputStream));
+                DOMResult result = new DOMResult();
+		transformer.transform(source, result);
 
-                // Parse the temporary output into a new Document for the next stage
-                Document newDocument = docBuilder.parse(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
-                document = newDocument;
+		//Next stage
+                document = (Document) result.getNode();
             }
 
             // Write the final transformed Document to the output file
