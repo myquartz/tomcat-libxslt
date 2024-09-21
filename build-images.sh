@@ -61,11 +61,11 @@ elif [[ "$t" == "9"* ]]; then
 	MAVEN_TAG=3.8-eclipse-temurin-8
 	JD1=-Dmaven.compiler.source=1.8
 	JD2=-Dmaven.compiler.target=1.8
-elif [[ "$t" == "10.0"* ]]; then
+elif [[ "$t" == "10.0"* ||  "$t" == "10-"* ]]; then
 	VER=10.0.x
 elif [[ "$t" == "10.1"* ]]; then
 	VER=10.1.x
-elif [[ "$t" == "11.0"* ]]; then
+elif [[ "$t" == "11.0"* || "$t" == "11-"* ]]; then
 	MAVEN_TAG=3-eclipse-temurin-17
 	JD1=-Dmaven.compiler.source=17
 	JD2=-Dmaven.compiler.target=17
