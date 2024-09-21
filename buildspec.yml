@@ -15,9 +15,9 @@ phases:
             - export TOMCAT_BASE_IMAGE=public.ecr.aws/docker/library/tomcat
             - VARIANT_TAGS=${TOMCAT_VARIANT_TAGS:-8.5-jdk8 8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17 10-jdk17-corretto-al2 10-jdk21}
             - CDI_VARIANT_TAGS=${TOMCAT_CDI_VARIANT_TAGS:-9-jdk11 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17 10-jdk17-corretto-al2 10-jdk21}
-            - sh build-images.sh "$VARIANT_TAGS" no
+            - bash build-images.sh "$VARIANT_TAGS" no
             - echo Build CDI docker images started on `date`            
-            - sh build-images.sh "$CDI_VARIANT_TAGS" yes
+            - bash build-images.sh "$CDI_VARIANT_TAGS" yes
     post_build:
         commands:
             - echo Build completed on `date`
