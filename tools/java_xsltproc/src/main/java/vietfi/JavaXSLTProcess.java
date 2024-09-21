@@ -61,6 +61,7 @@ public class JavaXSLTProcess {
 				}
 
         		parameters.put(name, value);
+				pi++;
         	}
 			else if("--param-file".equals(args[pi])) {
 				if(pi+1 >= args.length) {
@@ -75,6 +76,7 @@ public class JavaXSLTProcess {
 					System.err.println("Can not read "+paramFile+": "+e.getMessage());
 					System.exit(1);
                 }
+				pi++;
             }
         	else if(!args[pi].startsWith("--")) {
         		break;
@@ -120,6 +122,7 @@ public class JavaXSLTProcess {
             // Load the source XML document
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             docFactory.setNamespaceAware(true);  // Important for XSLT processing
+			System.out.println("Reading XML from "+sourceFile);
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
             Document document = docBuilder.parse(new File(sourceFile));
 
@@ -160,7 +163,9 @@ public class JavaXSLTProcess {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
             DOMSource source = new DOMSource(document);
+			System.out.println("Writing out to "+outputFile);
             StreamResult result = new StreamResult(new FileOutputStream(outputFile));
+
             transformer.transform(source, result);
 
             System.out.println("Transformation pipeline completed successfully.");

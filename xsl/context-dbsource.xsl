@@ -59,11 +59,14 @@
 				<xsl:value-of select="$db_pool_max" />
 			</xsl:attribute>
 			</xsl:if>
-			<xsl:if test="$db_pool_init != ''">
 			<xsl:attribute name="initialSize">
-				<xsl:value-of select="$db_pool_init" />
+				<xsl:choose>
+				<xsl:when test="$db_pool_init != ''">
+					<xsl:value-of select="$db_pool_init" />
+				</xsl:when>
+				<xsl:otherwise>0</xsl:otherwise>
+				</xsl:choose>
 			</xsl:attribute>
-			</xsl:if>
 			<xsl:if test="$db_idle_max != ''">
 			<xsl:attribute name="maxIdle">
 				<xsl:value-of select="$db_idle_max" />

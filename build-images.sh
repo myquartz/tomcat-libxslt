@@ -4,6 +4,8 @@ echo Build tomcat images with java built-in XSLT, CDI 2 and CXF support for Tomc
 LIST=$1
 CDILIST=$2
 
+docker volume rm tomcat-libxslt-src
+
 if [ "$LIST" = "" ]; then
 LIST="8.5-jdk8 8.5-jdk8-temurin 8.5-jdk8-temurin-focal 8.5-jdk8-temurin-jammy 8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11 8.5-jdk11-temurin 8.5-jdk11-temurin-jammy 8.5-jdk11-temurin-focal 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11 9-jdk11-temurin 9-jdk11-temurin-jammy 9-jdk11-temurin-focal 9-jdk11-temurin-noble 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-temurin 9-jdk17-temurin-jammy 9-jdk17-temurin-focal 9-jdk17-temurin-noble 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-temurin 10-jdk11-temurin-jammy 10-jdk11-temurin-focal 10-jdk11-temurin-noble 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17 10-jdk17-temurin 10-jdk17-temurin-jammy 10-jdk17-temurin-focal 10-jdk17-temurin-noble 10-jdk21-temurin-noble 10.1-jdk17 10.1-jdk17-temurin 10.1-jdk17-temurin-jammy 10.1-jdk17-temurin-noble 10.1-jdk21-temurin-noble 11.0-jdk21-temurin-noble"
 fi
@@ -33,8 +35,8 @@ for cdi in $CDILIST; do
 for t in $LIST
 do
 
-jdk_version=$(echo "$t" | grep -oP 'jdk\d+')
-jre_version=$(echo "$t" | grep -oP 'jre\d+')
+jdk_version=$(echo "$t" | grep -oE 'jdk[0-9]+')
+jre_version=$(echo "$t" | grep -oE 'jre[0-9]+')
 
 echo Building $t cdi=$cdi with jdk=$jdk_version
 
@@ -100,16 +102,16 @@ fi
 if [ ! -e "$OUT_DIR/xsltproc.tar" ]; then
 	echo "Run build for xsltproc by Java Transform inside Docker (copy source into volume)"
  	tar -cf "$OUT_DIR/xsltproc-src.tar" tools/java_xsltproc
-  	docker pull $MAVENBASE:3.8-eclipse-temurin-8
+ 	docker pull $MAVENBASE:3.8-eclipse-temurin-8
  	docker run -d --rm --name cp-source -v tomcat-libxslt-src:/opt/tomcat-libxslt-src $MAVENBASE:3.8-eclipse-temurin-8 sh -c "sleep 20"
-  	docker cp "$OUT_DIR/xsltproc-src.tar" cp-source:/opt/tomcat-libxslt-src/
+ 	docker cp "$OUT_DIR/xsltproc-src.tar" cp-source:/opt/tomcat-libxslt-src/
 	docker run --rm -i -v tomcat-libxslt-src:/opt/tomcat-libxslt-src -v m2cache:/root/.m2 $MAVENBASE:3.8-eclipse-temurin-8 sh -c \
-		"cd /opt/tomcat-libxslt-src/ && [ ! -e tools/java_xsltproc/target ] && tar -xf xsltproc-src.tar  && mvn package -q -f tools/java_xsltproc && cd tools/java_xsltproc/target && tar -vcf ../../../xsltproc.tar xslt-process-*.jar"
-  	docker run -d --rm --name cp-target -v tomcat-libxslt-src:/opt/tomcat-libxslt-src $MAVENBASE:3.8-eclipse-temurin-8 sh -c "sleep 20"
-  	docker cp cp-target:/opt/tomcat-libxslt-src/xsltproc.tar "$OUT_DIR/xsltproc.tar" 
+		"cd /opt/tomcat-libxslt-src/ && [ ! -e xsltproc.tar ] && tar -xf xsltproc-src.tar  && mvn package -DskipTests -q -f tools/java_xsltproc && cd tools/java_xsltproc/target && tar -vcf ../../../xsltproc.tar xslt-process-*.jar"
+  docker run -d --rm --name cp-target -v tomcat-libxslt-src:/opt/tomcat-libxslt-src $MAVENBASE:3.8-eclipse-temurin-8 sh -c "sleep 20"
+  docker cp cp-target:/opt/tomcat-libxslt-src/xsltproc.tar "$OUT_DIR/xsltproc.tar" 
 fi
 
-tar -C $OUT_DIR -vxf "$OUT_DIR/xsltproc.tar"
+tar -C $OUT_DIR -vxf "$OUT_DIR/xsltproc.tar" || exit $?
 
 envsubst > Dockerfile <<EOF
 FROM $TOMCATBASE:$t
@@ -247,5 +249,5 @@ fi
 done
 done
 
-#rm -fR build
+rm -f $OUT_DIR/xsltproc.tar
 rm -f Dockerfile
