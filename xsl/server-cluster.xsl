@@ -20,6 +20,15 @@
 	<xsl:param name="LOCAL_DS" />
 	<xsl:param name="ALL_ROLES_MODE" />
 
+	<xsl:variable name="my_recv_port">
+		<xsl:choose>
+			<xsl:when test="boolean($RECEIVE_PORT) and $RECEIVE_PORT != ''">
+					<xsl:value-of select="$RECEIVE_PORT" />
+  		</xsl:when>
+			<xsl:otherwise>5000</xsl:otherwise>
+		</xsl:choose>
+	</xsl:variable>
+	
 	<xsl:template match="/">
 		<Server>
 			<xsl:for-each select="Server/attribute::*">
@@ -125,7 +134,7 @@
 																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','1','}')" />
 																</xsl:attribute>
 																<xsl:attribute name="port">
-																	<xsl:value-of select="$RECEIVE_PORT" />
+																	<xsl:value-of select="$my_recv_port" />
 																</xsl:attribute>
 															</Member>
 															</xsl:if>
@@ -138,7 +147,7 @@
 																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','2','}')" />
 																</xsl:attribute>
 																<xsl:attribute name="port">
-																	<xsl:value-of select="$RECEIVE_PORT" />
+																	<xsl:value-of select="$my_recv_port" />
 																</xsl:attribute>
 															</Member>
 															</xsl:if>
@@ -151,7 +160,7 @@
 																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','3','}')" />
 																</xsl:attribute>
 																<xsl:attribute name="port">
-																	<xsl:value-of select="$RECEIVE_PORT" />
+																	<xsl:value-of select="$my_recv_port" />
 																</xsl:attribute>
 															</Member>
 															</xsl:if>
@@ -164,7 +173,7 @@
 																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','4','}')" />
 																</xsl:attribute>
 																<xsl:attribute name="port">
-																	<xsl:value-of select="$RECEIVE_PORT" />
+																	<xsl:value-of select="$my_recv_port" />
 																</xsl:attribute>
 															</Member>
 															</xsl:if>
@@ -177,7 +186,7 @@
 																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','5','}')" />
 																</xsl:attribute>
 																<xsl:attribute name="port">
-																	<xsl:value-of select="$RECEIVE_PORT" />
+																	<xsl:value-of select="$my_recv_port" />
 																</xsl:attribute>
 															</Member>
 															</xsl:if>
@@ -190,7 +199,7 @@
 																	<xsl:value-of select="concat('{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,','6','}')" />
 																</xsl:attribute>
 																<xsl:attribute name="port">
-																	<xsl:value-of select="$RECEIVE_PORT" />
+																	<xsl:value-of select="$my_recv_port" />
 																</xsl:attribute>
 															</Member>
 															</xsl:if>
@@ -203,7 +212,7 @@
 										selectorTimeout="100"
 										maxThreads="6">
 										<xsl:attribute name="port">
-											<xsl:value-of select="$RECEIVE_PORT" />
+											<xsl:value-of select="$my_recv_port" />
 										</xsl:attribute>
 									</Receiver>
 

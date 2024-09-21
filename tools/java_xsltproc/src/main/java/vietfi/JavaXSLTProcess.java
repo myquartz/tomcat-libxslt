@@ -5,10 +5,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -41,25 +44,60 @@ public class JavaXSLTProcess {
         	if("--using-saxon".equals(args[pi]))
         		useSaxon = true;
         	else if("--param".equals(args[pi])) {
-        		String name = args[pi+1];
-        		String value = args[pi+2];
-        		if(value.length()>=2 && value.startsWith("'") && value.endsWith("'"))
-        			value = value.substring(1, value.length()-1);
-			else if(value.length()>=2 && value.startsWith("\"") && value.endsWith("\""))
-        			value = value.substring(1, value.length()-1);
-        			
+				if(pi+1 >= args.length) {
+					System.err.println("--param must be follow with NAME[=VALUE]");
+					System.exit(1);
+				}
+
+				String param = args[pi+1];
+				int eq_pos = param.indexOf('=');
+        		String name = eq_pos > 0 ? param.substring(0, eq_pos) : param;
+        		String value = eq_pos < 0 ? "" : param.substring(eq_pos+1);
+        		if(value.length()>=2) {
+					if (value.startsWith("'") && value.endsWith("'"))
+						value = value.substring(1, value.length() - 1).replace("''", "'");
+					else if (value.startsWith("\"") && value.endsWith("\""))
+						value = value.substring(1, value.length() - 1).replaceAll("\\\\(.)", "$1");
+				}
+
         		parameters.put(name, value);
-        		pi += 2;
         	}
-        	else {
+			else if("--param-file".equals(args[pi])) {
+				if(pi+1 >= args.length) {
+					System.err.println("--param-file must be follow with file_name");
+					System.exit(1);
+				}
+				Path paramFile = Paths.get(args[pi+1]);
+                try {
+                    List<String> lines = Files.readAllLines(paramFile);
+					parseParameterLines(lines, (k, v) -> parameters.put(k, v));
+                } catch (IOException e) {
+					System.err.println("Can not read "+paramFile+": "+e.getMessage());
+					System.exit(1);
+                }
+            }
+        	else if(!args[pi].startsWith("--")) {
         		break;
         	}
+			else if(args[pi].equals("--")) {
+				pi++;
+				break;
+			}
+			else {
+				System.err.println("Invalid parameter: "+args[pi]);
+				System.exit(1);
+			}
         	pi++;
         }
         
         // Check for correct number of arguments
         if (args.length - pi < 3) {
-            System.err.println("Usage: JavaXSLTProcess [--using-saxon] [--param <NAME> <VALUE>]... <source.xml> <xsl1.xsl> <xsl2.xsl> --bundle=<xsl-with-param.txt> ... <output.xml>");
+            System.err.println("Usage: JavaXSLTProcess [--using-saxon] [--param-file <param_file.txt>] [--param <NAME>=[VALUE]]... [--] <source.xml> <xsl1.xsl> <xsl2.xsl> bundle=<xsl-with-param.txt> ... <output.xml>");
+			System.err.println("param_file.txt: a file text of env style:\n"
+					+"  PARAM_NAME1=PARAM_VALUE1\n"
+					+"  PARAM_NAME2=PARAM_VALUE2\n"
+					+"  PARAM_NAME3=\n"
+			);
             System.err.println("xsl-with-param.txt: a file text of definition for specific transformation step with the following lines:\n"
             		+"  xsl3.xsl (XSL file name at the first non-empty line)\n"
             		+"  PARAM_NAME=PARAM_VALUE\n"
@@ -67,18 +105,18 @@ public class JavaXSLTProcess {
             		);
             System.exit(1);
         }
-        
+
         final String bundlePrefix = "--bundle=";
-      
+
         String sourceFile = args[pi];
         String outputFile = args[args.length - 1];
         String[] xsls = java.util.Arrays.copyOfRange(args, pi+1, args.length - 1);
 
         try {
-        	TransformerFactory factory = useSaxon ? 
+        	TransformerFactory factory = useSaxon ?
                     TransformerFactory.newInstance("net.sf.saxon.TransformerFactoryImpl", JavaXSLTProcess.class.getClassLoader()) :
                     TransformerFactory.newInstance();
-        	
+
             // Load the source XML document
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             docFactory.setNamespaceAware(true);  // Important for XSLT processing
@@ -86,41 +124,28 @@ public class JavaXSLTProcess {
             Document document = docBuilder.parse(new File(sourceFile));
 
             // Perform each XSLT transformation in the pipeline
-            for (String p : xsls) {            	
+            for (String p : xsls) {
             	Transformer transformer = null;
                 // Create a Transformer for the current XSLT
             	if(p.startsWith(bundlePrefix)) {
-            		List<String> lines = Files.readAllLines(Paths.get(p.substring(bundlePrefix.length())));
-            		for(String l:lines) {
-            			l = l.trim();
-            			if(l.isEmpty() || l.startsWith("#"))
-            				continue;
-            			if(transformer == null) {
-            				transformer = factory.newTransformer(new StreamSource(new FileInputStream(l)));
-            				System.out.println("Transforming by "+ p+": XSL file "+l);
-            			}
-            			else {
-            				int spi = l.indexOf('=');
-            				if(spi < 0 || spi == l.length()-1) { //empty
-            					transformer.setParameter(l, "");
-            				}
-            				else {
-            					int nv = spi+1;
-            					while(nv < l.length() && Character.isWhitespace(l.charAt(nv)))
-            						nv++;
-            					transformer.setParameter(l.substring(0, spi).trim(), l.substring(nv));
-            				}
-            			}
-            		}
+					Path bundleFile = Paths.get(p.substring(bundlePrefix.length()));
+            		List<String> lines = Files.readAllLines(bundleFile);
+					if(lines.isEmpty()) {
+						System.err.println(bundleFile+": is empty file");
+						System.exit(1);
+					}
+					Transformer finalTransformer = factory.newTransformer(new StreamSource(new FileInputStream(lines.get(0))));
+					parseParameterLines(lines, (k, v) -> finalTransformer.setParameter(k, v));
+					transformer = finalTransformer;
             	}
             	else {
             		transformer = factory.newTransformer(new StreamSource(new FileInputStream(p)));
             		System.out.println("Transforming by XSL file "+ p);
             	}
-                
+
                 for(Map.Entry<String, String> e: parameters.entrySet())
                 	transformer.setParameter(e.getKey(), e.getValue());
-                
+
                 // Transform the current Document to a temporary output
                 DOMSource source = new DOMSource(document);
                 DOMResult result = new DOMResult();
@@ -144,4 +169,41 @@ public class JavaXSLTProcess {
             System.exit(2);
         }
     }
+
+	/**
+	 *	Parsing parameter file as (no quote)
+	 *
+	 *   PARAM_NAME1=PARAM_VALUE1\n
+	 *   PARAM_NAME2=PARAM_VALUE2\n
+	 *   PARAM_NAME3=\n
+	 *   NON_PARSING
+	 *   #COMMENTING
+	 *
+	 * @param lines
+	 * @param setter
+	 * @return
+	 */
+	static String[] parseParameterLines(List<String> lines, BiConsumer<String, String> setter) {
+		List<String> inseparableString = new ArrayList<>(lines.size());
+		for(String l:lines) {
+			l = l.trim();
+			//comments
+			if(l.isEmpty() || l.startsWith("#")) {
+				//commenting
+				continue;
+			}
+
+			int spi = l.indexOf('=');
+			if(spi < 0) { //in-able to parse
+				inseparableString.add(l);
+			}
+			else {
+				int nv = spi+1;
+				while(nv < l.length() && Character.isWhitespace(l.charAt(nv)))
+					nv++;
+				setter.accept(l.substring(0, spi).trim(), l.substring(nv).trim());
+			}
+		}
+		return inseparableString.toArray(new String[inseparableString.size()]);
+	}
 }

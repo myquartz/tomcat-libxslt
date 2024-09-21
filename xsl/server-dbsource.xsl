@@ -45,15 +45,21 @@
 							<xsl:attribute name="password">
 								<xsl:value-of select="$db_password" />
 							</xsl:attribute>
-							<xsl:attribute name="maxActive">
-								<xsl:value-of select="$db_pool_max" />
-							</xsl:attribute>
-							<xsl:attribute name="initialSize">
-								<xsl:value-of select="$db_pool_init" />
-							</xsl:attribute>
-							<xsl:attribute name="maxIdle">
-								<xsl:value-of select="$db_idle_max" />
-							</xsl:attribute>
+			<xsl:if test="$db_pool_max != ''">
+			<xsl:attribute name="maxActive">
+				<xsl:value-of select="$db_pool_max" />
+			</xsl:attribute>
+			</xsl:if>
+			<xsl:if test="$db_pool_init != ''">
+			<xsl:attribute name="initialSize">
+				<xsl:value-of select="$db_pool_init" />
+			</xsl:attribute>
+			</xsl:if>
+			<xsl:if test="$db_idle_max != ''">
+			<xsl:attribute name="maxIdle">
+				<xsl:value-of select="$db_idle_max" />
+			</xsl:attribute>
+			</xsl:if>
 							<xsl:if test="$validation_query != ''">
 								<xsl:attribute name="validationQuery">
 									<xsl:value-of select="$validation_query" />
