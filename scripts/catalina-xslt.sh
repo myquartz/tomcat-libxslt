@@ -251,6 +251,13 @@ if [ -n "$VALVE_ACCESS_LOG_DIR" ]; then
 	fi
 fi
 
+if [ -n "$NO_ACCESS_LOG" ]; then
+		if [ -e "server-access-log.xsl" ]; then
+			SERVER_PARAMS="$SERVER_PARAMS --param access_log_remove=true"
+			SERVER_XSL="$SERVER_XSL server-access-log.xsl"
+		fi
+fi
+
 if [ -n "$VALVE_SHOW_ERROR" ]; then
 	#Context Valve Show Error
 	if [ -e "context-show-error.xsl" ]; then
