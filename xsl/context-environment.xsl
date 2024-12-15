@@ -12,6 +12,8 @@
 	
 	<xsl:template match="/">
 		<Context>
+			<xsl:copy-of select="/Context/attribute::*" />
+
 			<xsl:for-each select="Context/child::*">
 				<xsl:choose>
 					<xsl:when test="name() = 'Environment' and @name = $env_name">

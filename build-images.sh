@@ -7,7 +7,7 @@ CDILIST=$2
 docker volume rm tomcat-libxslt-src
 
 if [ "$LIST" = "" ]; then
-LIST="8.5-jdk8 8.5-jdk8-temurin 8.5-jdk8-temurin-focal 8.5-jdk8-temurin-jammy 8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11 8.5-jdk11-temurin 8.5-jdk11-temurin-jammy 8.5-jdk11-temurin-focal 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11 9-jdk11-temurin 9-jdk11-temurin-jammy 9-jdk11-temurin-focal 9-jdk11-temurin-noble 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-temurin 9-jdk17-temurin-jammy 9-jdk17-temurin-focal 9-jdk17-temurin-noble 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-temurin 10-jdk11-temurin-jammy 10-jdk11-temurin-focal 10-jdk11-temurin-noble 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17 10-jdk17-temurin 10-jdk17-temurin-jammy 10-jdk17-temurin-focal 10-jdk17-temurin-noble 10-jdk21-temurin-noble 10.1-jdk17 10.1-jdk17-temurin 10.1-jdk17-temurin-jammy 10.1-jdk17-temurin-noble 10.1-jdk21-temurin-noble 11.0-jdk21-temurin-noble"
+LIST="8.5-jdk8 8.5-jdk8-temurin 8.5-jdk8-temurin-focal 8.5-jdk8-temurin-jammy 8.5-jdk8-corretto 8.5-jdk8-corretto-al2 8.5-jdk11 8.5-jdk11-temurin 8.5-jdk11-temurin-jammy 8.5-jdk11-temurin-focal 8.5-jdk11-corretto 8.5-jdk11-corretto-al2 9-jdk11 9-jdk11-temurin 9-jdk11-temurin-jammy 9-jdk11-temurin-focal 9-jdk11-temurin-noble 9-jdk11-corretto 9-jdk11-corretto-al2 9-jdk17 9-jdk17-temurin 9-jdk17-temurin-jammy 9-jdk17-temurin-focal 9-jdk17-temurin-noble 9-jdk17-corretto 9-jdk17-corretto-al2 10-jdk11 10-jdk11-temurin 10-jdk11-temurin-jammy 10-jdk11-temurin-focal 10-jdk11-corretto 10-jdk11-corretto-al2 10-jdk17 10-jdk17-temurin 10-jdk17-temurin-jammy 10-jdk17-temurin-focal 10-jdk17-temurin-noble 10-jdk21-temurin-noble 10.1-jdk17 10.1-jdk17-temurin 10.1-jdk17-temurin-jammy 10.1-jdk17-temurin-noble 10.1-jdk21-temurin-noble 11.0-jdk21-temurin-noble"
 fi
 
 if [ "$CDILIST" = "" ]; then
@@ -122,20 +122,27 @@ LABEL maintainer="myquartz@gmail.com"
 $COPY_CDI_FILES
 $COPY_CXF_FILES
 
-ADD scripts/catalina-xslt.sh /usr/local/tomcat/bin
+ADD xsl/context-docbase.xsl /usr/local/tomcat/
 ADD xsl/context-any-resource.xsl /usr/local/tomcat/
 ADD xsl/context-environment.xsl /usr/local/tomcat/
 ADD xsl/context-parameter.xsl /usr/local/tomcat/
+ADD xsl/context-remote-address.xsl /usr/local/tomcat/
+ADD xsl/context-remote-cidr.xsl /usr/local/tomcat/
+ADD xsl/context-access-log.xsl /usr/local/tomcat/
+ADD xsl/context-show-error.xsl /usr/local/tomcat/
 ADD xsl/context-ldap-realm.xsl /usr/local/tomcat/
 ADD xsl/server-ldap-realm.xsl /usr/local/tomcat/
 ADD xsl/context-db-realm.xsl /usr/local/tomcat/
 ADD xsl/server-db-realm.xsl /usr/local/tomcat/
 ADD xsl/context-dbsource.xsl /usr/local/tomcat/
+ADD xsl/server-access-log.xsl /usr/local/tomcat/
 ADD xsl/server-dbsource.xsl /usr/local/tomcat/
 ADD xsl/server-cluster.xsl /usr/local/tomcat/
 ADD xsl/server-port.xsl /usr/local/tomcat/
 
 $ADD_CDI_SCRIPT
+
+ADD scripts/catalina-xslt.sh /usr/local/tomcat/bin
 
 COPY build/xslt-process-1.0-SNAPSHOT.jar /usr/local/tomcat/bin/xslt-process.jar
 
@@ -145,6 +152,26 @@ ENV JDK_VERSION=$jdk_version
 ENV JRE_VERSION=$jre_version
 
 ENV DEPLOY_CONTEXT=
+ENV CONTEXT_DOCBASE=
+ENV CONTEXT_PATH=
+
+ENV VALVE_REMOTE_ADDR_ALLOW=
+ENV VALVE_REMOTE_ADDR_DENY=
+ENV VALVE_REMOTE_DENY_STATUS=
+ENV VALVE_REMOTE_CONNECTOR_PORT=
+
+ENV VALVE_REMOTE_CIDR_ALLOW=
+ENV VALVE_REMOTE_CIDR_DENY=
+
+ENV VALVE_ACCESS_LOG_DIR=
+ENV VALVE_ACCESS_LOG_PREFIX=
+ENV VALVE_ACCESS_LOG_SUFFIX=
+ENV VALVE_ACCESS_LOG_ROTATE=
+ENV VALVE_ACCESS_LOG_PATTERN=
+ENV VALVE_ACCESS_LOG_EXTENDED=
+
+ENV VALVE_SHOW_ERROR=
+ENV VALVE_SHOW_SERVER_INFO=
 
 ENV GLOBAL_DB_SOURCENAME=
 ENV DB_SOURCENAME=

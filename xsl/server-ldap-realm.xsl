@@ -26,9 +26,8 @@
 
 	<xsl:template match="/">
 		<Server>
-			<xsl:for-each select="Server/attribute::*">
-				<xsl:copy-of select="." />
-			</xsl:for-each>
+			<xsl:copy-of select="Server/attribute::*" />
+
 			<xsl:copy-of select="Server/Listener" />
 			<xsl:copy-of select="Server/GlobalNamingResources" />
 			
@@ -46,17 +45,27 @@
 							<xsl:for-each select="child::*">
 								<xsl:choose>
 									<xsl:when
-										test="name() = 'Realm' and @className='org.apache.catalina.realm.LockOutRealm'">
-										<xsl:for-each select="attribute::*">
-											<xsl:copy-of select="." />
-										</xsl:for-each>
-										<!-- add new realm -->
-										<xsl:call-template name="add_realm" />
-										<xsl:copy-of select="./child::*" />
+										test="name() = 'Realm' and (@className='org.apache.catalina.realm.LockOutRealm' or @className='org.apache.catalina.realm.CombinedRealm')">
+										<Realm>
+											<xsl:for-each select="attribute::*">
+												<xsl:copy-of select="." />
+											</xsl:for-each>
+											<!-- add new realm -->
+											<xsl:call-template name="add_realm" />
+											<xsl:copy-of select="./child::*" />
+										</Realm>
 									</xsl:when>
-									<xsl:otherwise>
+									<xsl:when
+										test="name() = 'Realm' and count(../Realm) = 1">
+										<Realm className="org.apache.catalina.realm.CombinedRealm">
+											<!-- add new realm -->
+											<xsl:call-template name="add_realm" />
+											<xsl:copy-of select="." />
+										</Realm>
+									</xsl:when>
+									<xsl:when test="name() != 'Realm'">
 										<xsl:copy-of select="." />
-									</xsl:otherwise>
+									</xsl:when>
 								</xsl:choose>
 							</xsl:for-each>
 						</Engine>

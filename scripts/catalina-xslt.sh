@@ -1,7 +1,12 @@
 #!/bin/bash
 
-echo catalina-xslt.sh starting at `date`
+echo catalina-xslt.sh starting at `date` for context=$DEPLOY_CONTEXT
 echo Configuration will produce for LDAP_URL="$LDAP_URL" REALM_USERTAB="$REALM_USERTAB" DB_SOURCENAME="$DB_SOURCENAME" GLOBAL_DB_SOURCENAME="$GLOBAL_DB_SOURCENAME" DB_URL="$DB_URL" CDI_ENABLE="$CDI_ENABLE" TOMCAT_HTTP_PORT="$TOMCAT_HTTP_PORT"
+
+CONTEXT_PARAMS=
+CONTEXT_XSL=
+SERVER_PARAMS=
+SERVER_XSL=
 
 if [ -e "webapps/$DEPLOY_CONTEXT.war" ]; then
 	echo Extract context.xml from webapps/$DEPLOY_CONTEXT.war
@@ -17,6 +22,13 @@ elif [ -e "webapps/ROOT/META-INF/context.xml" ]; then
 	echo Extract context.xml from webapps/ROOT.war
 	cp -f "webapps/ROOT/META-INF/context.xml" context.xml
 	DEPLOY_CONTEXT=ROOT
+
+# docBase of the context, not in the webapps
+elif [ -n "$CONTEXT_DOCBASE" -a -n "$DEPLOY_CONTEXT" ]; then
+	echo "Creating context $DEPLOY_CONTEXT docbase for $CONTEXT_DOCBASE"
+	CONTEXT_PARAMS="--param context_docbase=$CONTEXT_DOCBASE --param context_path=$CONTEXT_PATH"
+	CONTEXT_XSL="context-docbase.xsl"
+	[ -e "$CONTEXT_DOCBASE/META-INF/context.xml" ] && cp -f "$CONTEXT_DOCBASE/META-INF/context.xml" "context.xml"
 fi
 
 INPUT_CONTEXT=
@@ -43,11 +55,6 @@ if [ -n "$JRE_VERSION" -a "$JRE_VERSION" != "jre8" ]; then
 elif [ -n "$JDK_VERSION" -a "$JDK_VERSION" != "jdk8" ]; then
 	XSLT_JAVA_OPTS="-Xms64m -Xmx64m -XX:+UnlockExperimentalVMOptions -XX:+UseEpsilonGC"
 fi
-
-CONTEXT_PARAMS=
-CONTEXT_XSL=
-SERVER_PARAMS=
-SERVER_XSL=
 
 #LDAP Realm for context or server
 if [ -n "$LDAP_BIND" -o -n "$LDAP_USER_BASEDN" ]; then
@@ -202,6 +209,59 @@ if [ "$ENVIRONMENT_NAME" != "" ]; then
 	done
 fi
 
+if [ -n "$VALVE_REMOTE_ADDR_ALLOW" -o -n "$VALVE_REMOTE_ADDR_DENY" ]; then			
+	#Context Valve Remote Address
+	if [ -e "context-remote-address.xsl" ]; then
+		echo "Creating context remote-address for $VALVE_REMOTE_ADDR_ALLOW and $VALVE_REMOTE_ADDR_DENY"
+		CONTEXT_PARAMS="$CONTEXT_PARAMS --param remote_addr_allow=$VALVE_REMOTE_ADDR_ALLOW --param remote_addr_deny=$VALVE_REMOTE_ADDR_DENY --param deny_status=$VALVE_REMOTE_DENY_STATUS --param remote_connector_port=$VALVE_REMOTE_CONNECTOR_PORT"
+		CONTEXT_XSL="$CONTEXT_XSL context-remote-address.xsl"
+	else
+		echo "Can not create remote-address for $VALVE_REMOTE_ADDR_ALLOW and $VALVE_REMOTE_ADDR_DENY"
+	fi
+fi
+
+if [ -n "$VALVE_REMOTE_CIDR_ALLOW" -o -n "$VALVE_REMOTE_CIDR_DENY" ]; then			
+	#Context Valve Remote Address
+	if [ -e "context-remote-cidr.xsl" ]; then
+		echo "Creating context remote-address for $VALVE_REMOTE_CIDR_ALLOW and $VALVE_REMOTE_CIDR_DENY"
+		CONTEXT_PARAMS="$CONTEXT_PARAMS --param remote_cidr_allow=$VALVE_REMOTE_CIDR_ALLOW --param remote_cidr_deny=$VALVE_REMOTE_CIDR_DENY"
+		CONTEXT_XSL="$CONTEXT_XSL context-remote-cidr.xsl"
+	else
+		echo "Can not create remote-cidr for $VALVE_REMOTE_CIDR_ALLOW and $VALVE_REMOTE_CIDR_DENY"
+	fi
+fi
+
+if [ -n "$VALVE_ACCESS_LOG_DIR" ]; then
+	#Context Valve Access Log
+	if [ -n "$VALVE_LOG_FOR_CONTEXT" -a -e "context-access-log.xsl" ]; then
+		echo "Creating context access-log for $VALVE_ACCESS_LOG_DIR, and remove server access log"
+		CONTEXT_PARAMS="$CONTEXT_PARAMS --param access_log_dir=$VALVE_ACCESS_LOG_DIR --param access_log_prefix=$VALVE_ACCESS_LOG_PREFIX --param access_log_suffix=$VALVE_ACCESS_LOG_SUFFIX --param access_log_rotate=$VALVE_ACCESS_LOG_ROTATE --param access_log_extended=$VALVE_ACCESS_LOG_EXTENDED --param access_log_pattern=$VALVE_ACCESS_LOG_PATTERN"
+		CONTEXT_XSL="$CONTEXT_XSL context-access-log.xsl"
+		if [ -e "server-access-log.xsl" ]; then
+			SERVER_PARAMS="$SERVER_PARAMS --param access_log_remove=true"
+			SERVER_XSL="$SERVER_XSL server-access-log.xsl"
+		fi
+	#Server Valve Access Log
+	elif [ -e "server-access-log.xsl" ]; then
+		echo "Creating server access-log for $VALVE_ACCESS_LOG_DIR"
+		SERVER_PARAMS="$SERVER_PARAMS --param access_log_dir=$VALVE_ACCESS_LOG_DIR --param access_log_prefix=$VALVE_ACCESS_LOG_PREFIX --param access_log_suffix=$VALVE_ACCESS_LOG_SUFFIX --param access_log_rotate=$VALVE_ACCESS_LOG_ROTATE --param access_log_extended=$VALVE_ACCESS_LOG_EXTENDED --param access_log_pattern=$VALVE_ACCESS_LOG_PATTERN"
+		SERVER_XSL="$SERVER_XSL server-access-log.xsl"
+	else
+		echo "Can not create access-log for $VALVE_ACCESS_LOG_DIR"
+	fi
+fi
+
+if [ -n "$VALVE_SHOW_ERROR" ]; then
+	#Context Valve Show Error
+	if [ -e "context-show-error.xsl" ]; then
+		echo "Creating context show-error for $VALVE_SHOW_ERROR"
+		CONTEXT_PARAMS="$CONTEXT_PARAMS --param show_error=$VALVE_SHOW_ERROR --param show_server_info=$VALVE_SHOW_SERVER_INFO"
+		CONTEXT_XSL="$CONTEXT_XSL context-show-error.xsl"
+	else
+		echo "Can not create show-error for $VALVE_SHOW_ERROR"
+	fi
+fi
+
 #TCP Simple Cluster
 if [ "$CLUSTER" = "DeltaManager" -o "$CLUSTER" = "BackupManager" ]; then
 	if [ -e "server-cluster.xsl" ]; then
@@ -254,6 +314,7 @@ if [ -n "$DEPLOY_CONTEXT" -a -n "$INPUT_CONTEXT" -a -n "$CONTEXT_XSL" -a -e "$IN
 	[ -n "$DEBUG" ] && echo "CONTEXT_PARAMS: $CONTEXT_PARAMS"
 	[ -n "$DEBUG" ] && echo "CONTEXT_XSL: $INPUT_CONTEXT $CONTEXT_XSL"
 	java $XSLT_JAVA_OPTS -jar $JAR_PROC $CONTEXT_PARAMS -- $INPUT_CONTEXT $CONTEXT_XSL conf/Catalina/localhost/$DEPLOY_CONTEXT.xml
+	[ -n "$DEBUG" ] && cat conf/Catalina/localhost/$DEPLOY_CONTEXT.xml
 fi
 
 echo "generating server-based XSL: $SERVER_XSL"
@@ -261,6 +322,7 @@ if [ -n "$SERVER_XSL" -a -e "server-orig.xml" ]; then
 	[ -n "$DEBUG" ] && echo "SERVER_PARAMS: $SERVER_PARAMS"
 	[ -n "$DEBUG" ] && echo "SERVER_XSL: server-orig.xml $SERVER_XSL"
 	java $XSLT_JAVA_OPTS -jar $JAR_PROC $SERVER_PARAMS -- server-orig.xml $SERVER_XSL conf/server.xml
+	[ -n "$DEBUG" ] && cat conf/server.xml
  	#mark a change for faster next start time
  	mv "server-orig.xml" "server-orig.xml.bak"
 fi
