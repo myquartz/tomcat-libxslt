@@ -1,10 +1,18 @@
 
+# Tomcat with XSLT Processing
 
-# The tomcat-libxslt container build
+This container image is built on Apache Tomcat and includes an XSLT processor. Originally, the processor was `xsltproc` from LibXSLT, but it has since been replaced with a custom Java-based program. The purpose of this addition is to facilitate the generation and manipulation of Tomcat's XML configuration files. 
 
-This source repository contains building scripts for Apache Tomcat with LibXSLT for XML configuration mangling. Tomcat's main configuration files are server.xml, tomcat-users.xml, Catalina/localhost/your-app.xml... so it is best to use xsltproc to manipulate them.
+Key configuration files, such as `server.xml`, `tomcat-users.xml`, and `Catalina/localhost/your-app.xml`, are often modified for specific use cases. Using the XSLT processor, these files can be adjusted dynamically based on environment variables passed to the container, ensuring streamlined configuration management.
 
-# Supported features
+## The prebuilt images
+
+You can find prebuilt images at the following public registries:
+
+1. Docker Hub: [https://hub.docker.com/r/myquartz/tomcat-xslt](https://hub.docker.com/r/myquartz/tomcat-xslt) (without CDI) or [https://hub.docker.com/r/myquartz/tomcat-xslt-cdi](https://hub.docker.com/r/myquartz/tomcat-xslt-cdi) (Tomcat 9 or Tomcat 10 with CDI support). I update them some weeks regularity.
+2. AWS Public ECR: these images are built for **Corretto OpenJDK** only that supported by AWS. [AWS ECR /myquartz/tomcat-xslt](https://gallery.ecr.aws/myquartz/tomcat-xslt) is without CDI, [AWS ECR /myquartz/tomcat-xslt-cdi](https://gallery.ecr.aws/myquartz/tomcat-xslt-cdi) is with CDI and Jax-RS. These images configures to build by AWS CodeBuild and they are updated automatically on main branch push.
+
+## Supported features
 
 The script builds Apache Tomcat to manipulate configuration for:
 
@@ -23,11 +31,11 @@ Supported Tomcat versions and variants are:
   2. Tomcat 9 with JDK 11, 17.
   3. Tomcat 10.0, 10.1 with JDK 11, 17.
   
-## The Tomcat's Web Application Context
+### The Tomcat's Web Application Context
 
 For context-based deployment, an ENV named **DEPLOY_CONTEXT** has to be defined to indicate your **application**.war name. If not, ROOT.war is assumed. Global resource does not impacted by this variable.
 
-## HTTP/HTTPS/AJP Ports
+### HTTP/HTTPS/AJP Ports
 
 You can change the listening port of the tomcat instance by the following ENV variables:
 
@@ -36,7 +44,7 @@ You can change the listening port of the tomcat instance by the following ENV va
 3. TOMCAT_AJP_PORT: the AJP port - default to 8009 - changing to `<Connector />` element in the server.xml.
 4. CONNECTOR_MAX_THREADS: maximum threads of the connector.
 
-## Data Source
+### Data Source
 
 A context-based data source or a global-based data source will be added to context.xml or server.xml accordingly, based-on which enviroment variable defined.
 
@@ -69,7 +77,7 @@ When defining these parameters, the `Resource` element will be added/updated to 
 </Context>
 ~~~
 
-## Data Source Realm
+### Data Source Realm
 
 This Realms is for Servlet/Application authentication by a table hosting at the data source.
 If a context-based/global data source created, the realm will be set to context-based or global/context DB_SOURCENAME accordingly.
@@ -107,7 +115,7 @@ When defining these parameters, the Resource element will be added/updated to co
 </Context>
 ~~~
 
-## LDAP Realm
+### LDAP Realm
 
 This Realms is for Servlet/Application authentication by a LDAP server. Tomcat support JNDIRealm to query the LDAP server and lookup user/group for the realm.
 
@@ -150,13 +158,13 @@ When defining these parameters, the Resource element will be added/updated to co
 </Context>
 ~~~
 
-## Other Context's resources
+### Other Context's resources
 
 The application archive (war) can be configured by some others resources, there are more than one names separated by comma, it likes:
 
-### Generic resources
+#### Generic resources
 
-> Note: EXPERIMENTAL, the Resource is only support by 7 attributes (name, type, factory, auth, scope, singleton, share) due to the limitation of static attribute name of XSL. You must implement an Factory class to build the resource instance as the guide here [Adding_Custom_Resource_Factories](https://tomcat.apache.org/tomcat-9.0-doc/jndi-resources-howto.html#Adding_Custom_Resource_Factories)
+> Note: EXPERIMENTAL, the **Resource** is only support by 7 attributes (name, type, factory, auth, scope, singleton, share) due to the limitation of static attribute name of XSL. You must implement an Factory class to build the resource instance as the guide here [Adding_Custom_Resource_Factories](https://tomcat.apache.org/tomcat-9.0-doc/jndi-resources-howto.html#Adding_Custom_Resource_Factories)
 
 Define docker environment name/values are:
 
@@ -172,7 +180,7 @@ It will produce the Context configuration as the file **conf/Catalina/localhost/
 </Context>
 ~~~
 
-### Context parameters
+#### Context parameters
 
 Define docker parameter name/values are:
 
@@ -191,7 +199,7 @@ It will produce the Context configuration as the file **conf/Catalina/localhost/
 
 > Note: `&#x002C;` will be the comma (,), `&#x0020;` is the space in XML, .
 
-### Environment entries
+#### Java EE's Environment entries
 
 Define docker environment name/values are:
 
@@ -210,7 +218,7 @@ It will produce the Context configuration as the file **conf/Catalina/localhost/
 </Context>
 ~~~
 
-## Tomcat Cluster
+### Tomcat Server Cluster
 
 The Apache Tomcat additional supports Cluster feature for synchronization of session data between the tomcat instances.
 
@@ -252,9 +260,9 @@ When a cluster defined, the following element will be added into the Engine elem
 </Engine>
 ~~~
 
-## CDI / CXF enable
+### CDI / Jax-RS enabled
 
-To enable CDI support by Tomcat OWB/Jax-RS modules (from verion 9 to 10), you can set `CDI_ENABLE=yes` or `CDI_ENABLE=true`. The base name of image are `tomcat-xslt-cdi` is bundle with jar libraries that support CDI/Jax-RS web application. See https://tomcat.apache.org/tomcat-9.0-doc/cdi.html for more detail.
+To enable CDI support by Tomcat OWB/CXF modules (from verion 9 to 10), you can set `CDI_ENABLE=yes` or `CDI_ENABLE=true`. The base name of image are `tomcat-xslt-cdi` is bundle with jar libraries that support CDI/CXF web application. See https://tomcat.apache.org/tomcat-9.0-doc/cdi.html for more detail.
 
 When CDI enable, together with added libraries, the Server element in server.xml file will be added the following element:
 
@@ -264,7 +272,7 @@ When CDI enable, together with added libraries, the Server element in server.xml
 </Server>
 ~~~
 
-# Catalina run command line
+## Catalina run command line
 
 The original CMD **catalina.sh** of Tomcat will be override by **catalina-xslt.sh**. The catalina-xslt.sh produces context.xml and server.xml as environment variables defined, then it executes the original catalina.sh with the same arguments.
 
@@ -281,13 +289,6 @@ If you replace the command line back to `catalina.sh run`, you will run the orig
 ~~~ shell
 $ docker run -it --rm -p 8000:8000 -p 8080:8080 -e JPDA_ADDRESS=*:8000 -v ./webapps/test-app.war:/usr/local/tomcat/webapps/test-app.war myquartz/tomcat-xslt:9-jdk11 catalina.sh run
 ~~~
-
-# The prebuilt images
-
-You can find prebuilt images at the following public registries:
-
-1. Docker Hub: [https://hub.docker.com/r/myquartz/tomcat-xslt](https://hub.docker.com/r/myquartz/tomcat-xslt) (without CDI) or [https://hub.docker.com/r/myquartz/tomcat-xslt-cdi](https://hub.docker.com/r/myquartz/tomcat-xslt-cdi) (Tomcat 9 or Tomcat 10 with CDI support). I update them some weeks regularity.
-2. AWS Public ECR: these images are built for **Corretto OpenJDK** only that supported by AWS. [https://gallery.ecr.aws/k1r3z6f2/myquartz/tomcat-xslt](https://gallery.ecr.aws/k1r3z6f2/myquartz/tomcat-xslt) is without CDI, [https://gallery.ecr.aws/k1r3z6f2/myquartz/tomcat-xslt-cdi](https://gallery.ecr.aws/k1r3z6f2/myquartz/tomcat-xslt-cdi) is with CDI and Jax-RS. These images are updated automatically on main branch push.
 
 # Build your application image
 
