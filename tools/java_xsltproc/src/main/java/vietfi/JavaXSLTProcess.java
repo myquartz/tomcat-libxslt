@@ -26,6 +26,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
@@ -122,6 +123,7 @@ public class JavaXSLTProcess {
             // Load the source XML document
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             docFactory.setNamespaceAware(true);  // Important for XSLT processing
+
 			System.out.println("Reading XML from "+sourceFile);
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
             Document document = docBuilder.parse(new File(sourceFile));
@@ -143,7 +145,7 @@ public class JavaXSLTProcess {
             	}
             	else {
             		transformer = factory.newTransformer(new StreamSource(new FileInputStream(p)));
-            		System.out.println("Transforming by XSL file "+ p);
+            		System.out.println("Going to transform by XSL file "+ p);
             	}
 
                 for(Map.Entry<String, String> e: parameters.entrySet())
@@ -152,10 +154,18 @@ public class JavaXSLTProcess {
                 // Transform the current Document to a temporary output
                 DOMSource source = new DOMSource(document);
                 DOMResult result = new DOMResult();
-		transformer.transform(source, result);
+				transformer.transform(source, result);
 
-		//Next stage
+				NodeList children = document.getChildNodes();
+				System.out.println("Transform from document "+document.getNodeName()
+					+ " child count "+(children != null ? children.getLength() : -1));
+
+				//Next transformation for document
                 document = (Document) result.getNode();
+
+				children = document.getChildNodes();
+				System.out.println("Transform from document "+document.getNodeName()
+						+ " child count "+(children != null ? children.getLength() : -1));
             }
 
             // Write the final transformed Document to the output file

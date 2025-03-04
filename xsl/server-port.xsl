@@ -18,9 +18,7 @@
 
 	<xsl:template match="/">
 		<Server>
-			<xsl:for-each select="Server/attribute::*">
-				<xsl:copy-of select="." />
-			</xsl:for-each>
+			<xsl:copy-of select="Server/attribute::*" />
 			
 			<xsl:copy-of select="Server/Listener" />
 			<xsl:copy-of select="Server/GlobalNamingResources" />

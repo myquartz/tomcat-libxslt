@@ -5,30 +5,38 @@ echo Configuration will produce for LDAP_URL="$LDAP_URL" REALM_USERTAB="$REALM_U
 
 CONTEXT_PARAMS=
 CONTEXT_XSL=
+CONTEXT_WAR=
+CONTEXT_APP=
 SERVER_PARAMS=
 SERVER_XSL=
 
-if [ -e "webapps/$DEPLOY_CONTEXT.war" ]; then
+if [ -f "webapps/$DEPLOY_CONTEXT.war" ]; then
 	echo Extract context.xml from webapps/$DEPLOY_CONTEXT.war
 	jar -xf webapps/$DEPLOY_CONTEXT.war META-INF/context.xml
-elif [ -e "webapps/$DEPLOY_CONTEXT/META-INF/context.xml" ]; then
+	CONTEXT_WAR=webapps/$DEPLOY_CONTEXT.war
+	CONTEXT_APP=webapps/$DEPLOY_CONTEXT
+elif [ -f "webapps/$DEPLOY_CONTEXT/META-INF/context.xml" ]; then
 	echo copy context.xml from webapps/$DEPLOY_CONTEXT
 	cp -f "webapps/$DEPLOY_CONTEXT/META-INF/context.xml" context.xml
-elif [ -e "webapps/ROOT.war" ]; then
+	CONTEXT_APP=webapps/$DEPLOY_CONTEXT
+elif [ -f "webapps/ROOT.war" ]; then
 	echo Extract context.xml from webapps/ROOT.war
 	jar -xf webapps/ROOT.war META-INF/context.xml
 	DEPLOY_CONTEXT=ROOT
-elif [ -e "webapps/ROOT/META-INF/context.xml" ]; then
+	CONTEXT_WAR=webapps/ROOT.war
+	CONTEXT_APP=webapps/ROOT
+elif [ -f "webapps/ROOT/META-INF/context.xml" ]; then
 	echo Extract context.xml from webapps/ROOT.war
 	cp -f "webapps/ROOT/META-INF/context.xml" context.xml
 	DEPLOY_CONTEXT=ROOT
-
+	CONTEXT_APP=webapps/ROOT
 # docBase of the context, not in the webapps
-elif [ -n "$CONTEXT_DOCBASE" -a -n "$DEPLOY_CONTEXT" ]; then
+elif [ -n "$CONTEXT_DOCBASE" -a -d "$CONTEXT_DOCBASE" -a -n "$DEPLOY_CONTEXT" ]; then
 	echo "Creating context $DEPLOY_CONTEXT docbase for $CONTEXT_DOCBASE"
 	CONTEXT_PARAMS="--param context_docbase=$CONTEXT_DOCBASE --param context_path=$CONTEXT_PATH"
 	CONTEXT_XSL="context-docbase.xsl"
 	[ -e "$CONTEXT_DOCBASE/META-INF/context.xml" ] && cp -f "$CONTEXT_DOCBASE/META-INF/context.xml" "context.xml"
+	CONTEXT_APP=$CONTEXT_DOCBASE
 fi
 
 INPUT_CONTEXT=
@@ -291,6 +299,20 @@ if [ "$CLUSTER" = "DeltaManager" -o "$CLUSTER" = "BackupManager" ]; then
 			SERVER_PARAMS="$SERVER_PARAMS --param HOSTNAME=${HOSTNAME} --param REPLICAS=${REPLICAS:-2} --param RECEIVE_PORT=${RECEIVE_PORT:-5002}"
 		else
 			echo "Can not create cluster Replicas=$REPLICAS because not match requirement of hostname=$HOSTNAME"
+		fi
+
+		if [ -f "web-distributable.xsl" ]; then
+			if [ -n "$CONTEXT_WAR" -a -e "$CONTEXT_WAR" ]; then
+				echo "extracting context app from $CONTEXT_WAR"
+				mkdir -p $CONTEXT_APP && pushd $CONTEXT_APP && jar -xf $PWD/$CONTEXT_WAR && popd && rm -f $PWD/$CONTEXT_WAR
+			fi
+
+			if [ -f "$CONTEXT_APP/WEB-INF/web.xml" -a ! -e "web-orig.xml" ]; then
+				mv "$CONTEXT_APP/WEB-INF/web.xml" web-orig.xml
+				java $XSLT_JAVA_OPTS -jar $JAR_PROC -- web-orig.xml web-distributable.xsl $CONTEXT_APP/WEB-INF/web.xml
+			elif [ ! -f "$CONTEXT_APP/WEB-INF/web.xml" ]; then
+				echo "<web-app><distributable /></web-app>" > $CONTEXT_APP/WEB-INF/web.xml
+			fi
 		fi
 	fi
 fi

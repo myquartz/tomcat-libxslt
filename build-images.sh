@@ -138,6 +138,7 @@ ADD xsl/context-dbsource.xsl /usr/local/tomcat/
 ADD xsl/server-access-log.xsl /usr/local/tomcat/
 ADD xsl/server-dbsource.xsl /usr/local/tomcat/
 ADD xsl/server-cluster.xsl /usr/local/tomcat/
+ADD xsl/web-distributable.xsl /usr/local/tomcat/
 ADD xsl/server-port.xsl /usr/local/tomcat/
 
 $ADD_CDI_SCRIPT
