@@ -11,8 +11,8 @@ env:
   MY_DOCKER_REGISTRY: myquartz/
   USING_BUILDX: "yes"
   PUSH: "yes"
-  TOMCAT_VARIANT_TAGS: "8.5-jdk8 8.5-jdk11 9-jdk11"
-  TOMCAT_CDI_VARIANT_TAGS: "9-jdk11 9-jdk17"
+  TOMCAT_VARIANT_TAGS: "8.5-jdk8 8.5-jdk11 9-jdk11 10-jdk11 10-jdk17"
+  TOMCAT_CDI_VARIANT_TAGS: "9-jdk11 9-jdk17 10-jdk11 10-jdk17"
 jobs:
   docker:
     runs-on: ubuntu-latest
