@@ -5,7 +5,8 @@ on:
     branches:
       - "main"
 env:
-  BUILDER_OPT: "--quiet --builder cloud-myquartz-tomcat-xslt-builder"
+  #BUILDER_OPT: "--quiet --builder cloud-myquartz-tomcat-xslt-builder"
+  BUILDER_OPT: "--quiet"
   BUILD_PLATFORM: "linux/amd64,linux/arm64"
   MY_DOCKER_REGISTRY: myquartz/
   USING_BUILDX: "yes"
@@ -30,4 +31,4 @@ jobs:
           driver: cloud
           endpoint: "myquartz/tomcat-xslt-builder"
       - name: Build and push Tomcat
-        run: bash build-images.sh "$TOMCAT_VARIANT_TAGS" "no" && bash build-images.sh "$TOMCAT_CDI_VARIANT_TAGS" "yes"
+        run: docker buildx ls && bash build-images.sh "$TOMCAT_VARIANT_TAGS" "no" && bash build-images.sh "$TOMCAT_CDI_VARIANT_TAGS" "yes"
