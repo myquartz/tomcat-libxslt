@@ -11,7 +11,7 @@ env:
   MY_DOCKER_REGISTRY: myquartz/
   USING_BUILDX: "yes"
   PUSH: "yes"
-  TOMCAT_VARIANT_TAGS: "8.5-jdk8 8.5-jdk11"
+  TOMCAT_VARIANT_TAGS: "8.5-jdk8 8.5-jdk11 9-jdk11"
   TOMCAT_CDI_VARIANT_TAGS: "9-jdk11 9-jdk17"
 jobs:
   docker:
@@ -31,6 +31,4 @@ jobs:
           driver: cloud
           endpoint: "myquartz/tomcat-xslt-builder"
       - name: Build and push Tomcat
-        run: bash build-images.sh "$TOMCAT_VARIANT_TAGS" "no"
-      - name: Build and push Tomcat CDI
-        run: bash build-images.sh "$TOMCAT_CDI_VARIANT_TAGS" "yes"
+        run: bash build-images.sh "$TOMCAT_VARIANT_TAGS" "no" && bash build-images.sh "$TOMCAT_CDI_VARIANT_TAGS" "yes"
