@@ -244,7 +244,7 @@ else
 	ALT=
 fi
 
-IMAGE_TAG="${MY_DOCKER_REGISTRY}tomcat-xslt$ALT:$TAG"
+IMAGE_TAG="${MY_DOCKER_REGISTRY}tomcat-xslt$ALT:$TAG$TAG_POSTFIX"
 
 if [ "$t" = "$LATEST_TAG" ]; then 
 LATEST_OPT1="-t ${MY_DOCKER_REGISTRY}tomcat-xslt$ALT:latest$TAG_POSTFIX"
@@ -253,7 +253,7 @@ LATEST_OPT1=
 fi
 
 if [ "$REGISTRY_URL" != "" ]; then
-  IMAGE_TAG1="$REGISTRY_URL/tomcat-xslt$ALT:$TAG"
+  IMAGE_TAG1="$REGISTRY_URL/tomcat-xslt$ALT:$TAG$TAG_POSTFIX"
 	if [ "$t" = "$LATEST_TAG" ]; then 
 		LATEST_OPT2="-t $REGISTRY_URL/tomcat-xslt$ALT:latest$TAG_POSTFIX"
   else
@@ -266,9 +266,9 @@ if [ "$IMAGE_TAG1" != "" ]; then
 elif [ "$USING_BUILDX" != "" ]; then
 	docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} $LATEST_OPT1 $LATEST_OPT2 -t "$IMAGE_TAG" . || exit $?
 else
-	docker build -q -t "${IMAGE_TAG}${TAG_POSTFIX}" $LATEST_OPT1 $LATEST_OPT2 . || exit $?
+	docker build -q -t "${IMAGE_TAG}" $LATEST_OPT1 $LATEST_OPT2 . || exit $?
 	if [ "$PUSH" = "yes" ]; then
- 		docker push -q "${IMAGE_TAG}${TAG_POSTFIX}"
+ 		docker push -q "${IMAGE_TAG}"
 		[ "$LATEST_OPT1" != "" ] && docker push -q $LATEST_OPT1
 		[ "$LATEST_OPT2" != "" ] && docker push -q $LATEST_OPT2
 	fi

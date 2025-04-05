@@ -326,7 +326,7 @@ fi
 #Tomcat Port manipulation
 if [ -n "$TOMCAT_HTTP_PORT" -o -n "$TOMCAT_HTTPS_PORT" -o -n "$TOMCAT_AJP_PORT" ]; then
 	if [ -e "server-cluster.xsl" ]; then
-		echo "Changing Ports: HTTP=$TOMCAT_HTTP_PORT HTTPS=$TOMCAT_HTTPS_PORT AJP=$TOMCAT_AJP_PORT"
+		echo "Changing Ports: SHUTDOWN=$TOMCAT_SHUTDOWN_PORT HTTP=$TOMCAT_HTTP_PORT HTTPS=$TOMCAT_HTTPS_PORT AJP=$TOMCAT_AJP_PORT"
 		SERVER_PARAMS="$SERVER_PARAMS --param TOMCAT_HTTP_PORT=${TOMCAT_HTTP_PORT:-8080}"
 		[ -n "$CONNECTOR_REDIRECT_PORT" ] && SERVER_PARAMS="$SERVER_PARAMS --param CONNECTOR_REDIRECT_PORT=$CONNECTOR_REDIRECT_PORT"
 		[ -n "$CONNECTOR_MAX_POST_SIZE" ] && SERVER_PARAMS="$SERVER_PARAMS --param CONNECTOR_MAX_POST_SIZE=$CONNECTOR_MAX_POST_SIZE"
@@ -336,8 +336,23 @@ if [ -n "$TOMCAT_HTTP_PORT" -o -n "$TOMCAT_HTTPS_PORT" -o -n "$TOMCAT_AJP_PORT" 
 		[ -n "$CONNECTOR_MAX_SPARE_THREADS" ] && SERVER_PARAMS="$SERVER_PARAMS --param CONNECTOR_MAX_SPARE_THREADS=$CONNECTOR_MAX_SPARE_THREADS"
 		[ -n "$CONNECTOR_MAX_THREADS" ] && SERVER_PARAMS="$SERVER_PARAMS --param CONNECTOR_MAX_THREADS=$CONNECTOR_MAX_THREADS"
 		[ -n "$TOMCAT_AJP_PORT" ] && SERVER_PARAMS="$SERVER_PARAMS --param TOMCAT_AJP_PORT=$TOMCAT_AJP_PORT"
-		#TODO: certificates file configuration.
+		[ -n "$TOMCAT_SHUTDOWN_PORT" ] && SERVER_PARAMS="$SERVER_PARAMS --param TOMCAT_SHUTDOWN_PORT=$TOMCAT_SHUTDOWN_PORT"
 		[ -n "$TOMCAT_HTTPS_PORT" ] && SERVER_PARAMS="$SERVER_PARAMS --param TOMCAT_HTTPS_PORT=$TOMCAT_HTTPS_PORT"
+		[ -n "$TOMCAT_HTTP2" ] && SERVER_PARAMS="$SERVER_PARAMS --param TOMCAT_HTTP2=$TOMCAT_HTTP2"
+		[ -n "$TOMCAT_KEY_TYPE" ] && SERVER_PARAMS="$SERVER_PARAMS --param TOMCAT_KEY_TYPE=$TOMCAT_KEY_TYPE"
+		#Implementation: certificates file configuration.
+		if [ -n "$TOMCAT_KEY_STORE" ]; then
+			SERVER_PARAMS="$SERVER_PARAMS --param TOMCAT_KEY_STORE=$TOMCAT_KEY_STORE --param TOMCAT_KEY_STORE_PASSWORD=$TOMCAT_KEY_STORE_PASSWORD"
+		elif [ -n "$TOMCAT_APR_KEY" ]; then
+			SERVER_PARAMS="$SERVER_PARAMS --param TOMCAT_APR_KEY=$TOMCAT_APR_KEY --param TOMCAT_APR_CERT=$TOMCAT_APR_CERT --param TOMCAT_APR_CHAIN=$TOMCAT_APR_CHAIN"
+		elif [ -n "$TOMCAT_HTTPS_PORT" ]; then
+			if [ ! -e "conf/keystore.jks" ]; then
+				echo "generating a self-signed certificate saving as keystore.jks"
+				keytool -genkey -keyalg RSA -noprompt -alias tomcat -dname "CN=$HOSTNAME, OU=NA, O=NA, L=NA, S=NA, C=NA" \
+					-keystore conf/keystore.jks -validity 9999 -storepass autogenerate -keypass autogenerate
+			fi
+			SERVER_PARAMS="$SERVER_PARAMS --param TOMCAT_KEY_STORE=conf/keystore.jks --param TOMCAT_KEY_STORE_PASSWORD=autogenerate"
+		fi
 		SERVER_XSL="$SERVER_XSL server-port.xsl"
 	fi
 fi
