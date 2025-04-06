@@ -29,7 +29,7 @@ Supported Tomcat versions and variants are:
 
   1. Tomcat 8.5 with JDK 8, 11 (non-CDI/Jax-RS supported).
   2. Tomcat 9 with JDK 11, 17.
-  3. Tomcat 10.0, 10.1 with JDK 11, 17.
+  3. Tomcat 10.0, 10.1 with JDK 11, 17, 21.
   
 ### The Tomcat's Web Application Context
 
@@ -39,10 +39,18 @@ For context-based deployment, an ENV named **DEPLOY_CONTEXT** has to be defined 
 
 You can change the listening port of the tomcat instance by the following ENV variables:
 
-1. TOMCAT_HTTP_PORT: the HTTP port - default to 8080 - changing to `<Connector />` element in the server.xml.
-2. TOMCAT_HTTPS_PORT: the HTTPS port - default to empty - changing to `<Connector />` element in the server.xml (no keystore yet).
-3. TOMCAT_AJP_PORT: the AJP port - default to 8009 - changing to `<Connector />` element in the server.xml.
-4. CONNECTOR_MAX_THREADS: maximum threads of the connector.
+1. `TOMCAT_HTTP_PORT`: the HTTP port - default to 8080 - changing to `<Connector />` element in the server.xml.
+2. `TOMCAT_HTTPS_PORT`: the HTTPS port - default to empty - changing to `<Connector />` element in the server.xml (no keystore yet).
+3. `TOMCAT_AJP_PORT`: the AJP port - default to 8009 - changing to `<Connector />` element in the server.xml.
+4. `TOMCAT_SHUTDOWN_PORT`: non-default shutdown port (allow to run multiple tomcat containers in the same Pod of Kubernetes Cluster).
+5. `CONNECTOR_MAX_THREADS`: maximum threads of the connector.
+
+For HTTPS, you can define:
+
+1. `TOMCAT_KEY_STORE, TOMCAT_KEY_STORE_PASSWORD` point to key store file and its' password.
+2. `TOMCAT_APR_KEY, TOMCAT_APR_CERT, TOMCAT_APR_CHAIN` point to key, cert, chain (in PEM format) for APR HTTPS connector.
+3. `TOMCAT_KEY_TYPE`: RSA or DSA for key type (RSA is default).
+4. If you don't define any keys or certification but specify `TOMCAT_HTTPS_PORT`, a self-signed certificate will be generated once for each container.
 
 ### Data Source
 
@@ -50,15 +58,15 @@ A context-based data source or a global-based data source will be added to conte
 
 The following ENV variables to define a data source:
 
-* **DB_SOURCENAME** (context-based) or **GLOBAL_DB_SOURCENAME** (global): the data source name to create, eg: jdbc/data_source
-* **DB_CLASS**: the class name of JDBC Driver, eg: org.h2.Driver or com.mysql.cj.jdbc.Driver
-* **DB_URL**: the JDBC URL for the data source, eg: jdbc:h2:mem:test or jdbc:mysql:server:port/dbname
+* **DB_SOURCENAME** (context-based) or **GLOBAL_DB_SOURCENAME** (global): the data source name to create, eg: `jdbc/data_source`
+* **DB_CLASS**: the class name of JDBC Driver, eg: `org.h2.Driver` or `com.mysql.cj.jdbc.Driver`
+* **DB_URL**: the JDBC URL for the data source, eg: `jdbc:h2:mem:test` or `jdbc:mysql:server:port/dbname`
 * *DB_USERNAME*: the username for connection to the database.
 * *DB_PASSWORD* or *DB_PASSWORD_FILE*: the password or the file contains the password for database connection
-* DB_POOL_MAX: maximum connections of the pool - 50 by default
-* DB_POOL_INIT: initial connections when starting the data source - 0 by default
-* DB_IDLE_MAX: idle connections
-* DB_VALIDATION_QUERY: the query for connection validation, empty by default.
+* `DB_POOL_MAX`: maximum connections of the pool - 50 by default
+* `DB_POOL_INIT`: initial connections when starting the data source - 0 by default
+* `DB_IDLE_MAX`: idle connections
+* `DB_VALIDATION_QUERY`: the query for connection validation, empty by default.
 
 When defining these parameters, the `Resource` element will be added/updated to context.xml or server.xml file, it looks like:
 
@@ -227,12 +235,14 @@ To define a cluster, please specify the ENV variable **CLUSTER** to one of two v
 Once you define either CLUSTER=DeltaManager or CLUSTER=BackupManager, the following ENV variables have to be defined to adapt with your container enviroment:
 
 1. **KUBERNETES_NAMESPACE** or **OPENSHIFT_KUBE_PING_NAMESPACE** set to k8s namespace. Tomcat Cluster will detect member automatically without any further configuration.
-2. **DNS_MEMBERSHIP_SERVICE_NAME** to DNS name of the containers running (eg CloudMap of AWS ECS), the DNS A records will be treated as members automatically.
-3. **REPLICAS** (default mode): number of replicas (from 1 to 6, default to 2) if you running by docker swarm and your container instance's hostname ends with a number from 1 to 6, you can use this mode. See the link https://docs.docker.com/engine/swarm/services/ to know how to setup this kind of the cluster. *Note:* using the parameter `--hostname="{{.Task.Name}}-{{.Task.Slot}}"` to build hostname with a number behind.
+   > *Note:* all tomcat pods of the same namespace will be added to the cluster, even they are different in deployment or statefulset.
+2. **DNS_MEMBERSHIP_SERVICE_NAME** to DNS name of the containers running (eg CloudMap of AWS ECS), the DNS A records will be treated as members automatically. This mode is recommented for Docker Swarm tasks with `endpoint_mode: dnsrr`
+3. **REPLICAS** (default mode): number of replicas (from 1 to 6, default to 2) to add members of cluster by `name{number}` format, your container instance's hostname must end with a number from 1 to 6 (eg. Kubernetes StatefulSets), you can use this mode.
+   > *Solution:* for the Docker Swarm mode, create service with the parameter `--hostname="{{.Task.Name}}-{{.Task.Slot}}"` to let docker assign the tasks' hostname with the ordinal number trailer. See the link https://docs.docker.com/engine/swarm/services/ to know how to setup this kind of node hostname in the cluster. 
 4. *RECEIVE_PORT*: the port for cluster's communication - default to 5002.
 5. *REPLICATION_FILTER*: the package list that will filtered to replication.
 
-When a cluster defined, the following element will be added into the Engine element (assuming we setup CLUSTER=DeltaManager and KUBERNETES_NAMESPACE=your-cluster-name):
+When a cluster defined, the following element will be added into the Engine element (assuming we setup `CLUSTER=DeltaManager` and `KUBERNETES_NAMESPACE=your-cluster-name`):
 
 ~~~ xml
 <Engine>
@@ -259,6 +269,8 @@ When a cluster defined, the following element will be added into the Engine elem
 <!-- other elements -->
 </Engine>
 ~~~
+
+> For the not too large cluster and replicas do not keep stable state likes statefulset - the `CLUSTER=BackupManager` is recommended because full set of session data will be copied to every instances, not delta set.
 
 ### CDI / Jax-RS enabled
 
@@ -290,9 +302,21 @@ If you replace the command line back to `catalina.sh run`, you will run the orig
 $ docker run -it --rm -p 8000:8000 -p 8080:8080 -e JPDA_ADDRESS=*:8000 -v ./webapps/test-app.war:/usr/local/tomcat/webapps/test-app.war myquartz/tomcat-xslt:9-jdk11 catalina.sh run
 ~~~
 
-# Build your application image
+# Run container or build your application image
 
-## Your own application
+## Run directly without building
+
+You can run directly a container by defining DEPLOY_CONTEXT and the CONTEXT_DOCBASE, for example:
+
+~~~ shell
+docker run -d --rm -p 8080:8080 -p 8443:8443 -e TOMCAT_HTTPS_PORT=8443 -e DEPLOY_CONTEXT=examples -e CONTEXT_DOCBASE=/usr/local/tomcat/webapps.dist/examples -e VALVE_REMOTE_ADDR_ALLOW=.+ myquartz/tomcat-xslt:9-jdk11
+~~~
+
+Then browsing: http://localhost:8080/examples or https://localhost:8443/examples for trying the examples of Tomcat. Replacing the docbase path to your mounted volume for the app.
+
+> Note: the environment variable VALVE_REMOTE_ADDR_ALLOW=.+ allowes accessing from any IP Address, because the tomcat only allow 127.0.0.1 or ::1 for local testing but the docker container is deployed to the private network and the browser access to it as a different host IP.
+
+## Your own application image
 
 To build an image for the web application named `booking.war` in the container-based tomcat instance, your application lookup JNDI resource named "jdbc/ds" to access the MySQL Database. you can define a **Dockerfile** as:
 
@@ -365,7 +389,7 @@ Access the URL: http://localhost:8080/ for accessing the application.
 
 ---
 
-Let be happy container packaging
+Let be happy container packaging to the Apache Tomcat.
 
 @MyQuartz
 
