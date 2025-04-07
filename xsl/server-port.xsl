@@ -60,7 +60,7 @@
 								<xsl:when test="@SSLEnabled = 'true' and $TOMCAT_HTTPS_PORT != ''">
 									<xsl:value-of select="$TOMCAT_HTTPS_PORT" />
 								</xsl:when>
-								<xsl:when test="@protocol != 'AJP/1.3' and @SSLEnabled != 'true' and $TOMCAT_HTTP_PORT != ''">
+								<xsl:when test="$TOMCAT_HTTP_PORT != '' and not(@protocol = 'AJP/1.3') and not(@SSLEnabled = 'true')">
 									<xsl:value-of select="$TOMCAT_HTTP_PORT" />
 								</xsl:when>
 								<xsl:otherwise>
