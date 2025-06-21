@@ -3,7 +3,8 @@ name: Docker Hub build images CI
 on:
   release:
     types: [published]
-
+  workflow_dispatch:
+  
 env:
   BUILDER_OPT: "--quiet"
   BUILD_PLATFORM: "linux/amd64,linux/arm64"
