@@ -12,7 +12,7 @@ env:
   USING_BUILDX: "yes"
   PUSH: "yes"
   LATEST_TAG: "11-jdk17"
-  TOMCAT_VARIANT_TAGS: "8.5-jdk8 8.5-jdk11 9-jdk11 9-jdk11-temurin 9-jdk11-corretto 9-jdk17 9-jdk17-temurin 9-jdk17-corretto 10-jdk11 10-jdk11-temurin 10-jdk11-corretto 10-jdk17 11-jdk17 11-jdk21"
+  TOMCAT_VARIANT_TAGS: "9-jdk11 9-jdk11-temurin 9-jdk17 9-jdk17-temurin 9-jdk17-corretto 10-jdk11 10-jdk11-temurin 10-jdk11-corretto 10-jdk17 11-jdk17 11-jdk21"
   TOMCAT_CDI_VARIANT_TAGS: "9-jdk11 9-jdk11-temurin 9-jdk11-corretto 9-jdk17 9-jdk17-temurin 9-jdk17-corretto 10-jdk11 10-jdk11-temurin 10-jdk11-corretto 10-jdk17 11-jdk17 11-jdk21"
 jobs:
   docker:
