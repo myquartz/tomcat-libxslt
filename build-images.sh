@@ -261,13 +261,21 @@ if [ "$REGISTRY_URL" != "" ]; then
 	fi
 fi
 
+echo "Image to build $IMAGE_TAG and $IMAGE_TAG1"
+
 if [ "$IMAGE_TAG1" != "" ]; then
-  docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} $LATEST_OPT1 $LATEST_OPT2 -t "$IMAGE_TAG1" -t "$IMAGE_TAG" . || exit $?
+	echo "Using docker buildx $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local}"
+	docker buildx ls
+	docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} $LATEST_OPT1 $LATEST_OPT2 -t "$IMAGE_TAG1" -t "$IMAGE_TAG" . || exit $?
 elif [ "$USING_BUILDX" != "" ]; then
+	echo "Force to use docker buildx $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local}"
+	docker buildx ls
 	docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} $LATEST_OPT1 $LATEST_OPT2 -t "$IMAGE_TAG" . || exit $?
 else
+	echo "Using docker build"
 	docker build -q -t "${IMAGE_TAG}" $LATEST_OPT1 $LATEST_OPT2 . || exit $?
 	if [ "$PUSH" = "yes" ]; then
+		echo "Pushing $LATEST_OPT1 $LATEST_OPT2"
  		docker push -q "${IMAGE_TAG}"
 		[ "$LATEST_OPT1" != "" ] && docker push -q $LATEST_OPT1
 		[ "$LATEST_OPT2" != "" ] && docker push -q $LATEST_OPT2
