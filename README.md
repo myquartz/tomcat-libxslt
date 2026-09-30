@@ -166,6 +166,16 @@ When defining these parameters, the Resource element will be added/updated to co
 </Context>
 ~~~
 
+### Tomcat users, roles and UserDatabase Realm
+
+Users and roles are added into `conf/tomcat-users.xml` (Tomcat's global `UserDatabase`). Existing content is preserved.
+
+* **TOMCAT_ROLES**: comma separated roles to create, eg `role1,role2,role3`. If empty, nothing is done.
+* **TOMCAT_USERS**: comma separated user names, eg `user1,user2`.
+* **TOMCAT_USERS_ROLES**: roles of the users by the same position as TOMCAT_USERS, roles of one user are separated by colon, eg `role1:role2,role3`.
+* **TOMCAT_USERS_PASSWORD**: passwords by the same position as TOMCAT_USERS, used as-is (clear text or an already digested value); it can not contain a comma. A user without a password is skipped.
+* *TOMCAT_USERS_REALM_ON*: `true` or `yes` to add the `org.apache.catalina.realm.UserDatabaseRealm` (resourceName `UserDatabase`) to the context (or to the server's Engine if there is no context). If another Realm (JDBC, LDAP...) exists, it is wrapped by a `CombinedRealm` declaring the UserDatabase first; if a `LockOutRealm` or `CombinedRealm` exists, UserDatabase is added as its first child.
+
 ### Other Context's resources
 
 The application archive (war) can be configured by some others resources, there are more than one names separated by comma, it likes:

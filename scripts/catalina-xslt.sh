@@ -357,6 +357,35 @@ if [ -n "$TOMCAT_HTTP_PORT" -o -n "$TOMCAT_HTTPS_PORT" -o -n "$TOMCAT_AJP_PORT" 
 	fi
 fi
 
+#Tomcat users and roles for the global UserDatabase (conf/tomcat-users.xml)
+if [ -n "$TOMCAT_ROLES" -a -e "tomcat-users.xsl" ]; then
+	if [ -f "conf/tomcat-users.xml" -a ! -e "tomcat-users-orig.xml" ]; then
+		cp -f conf/tomcat-users.xml tomcat-users-orig.xml
+	fi
+	if [ -f "tomcat-users-orig.xml" ]; then
+		echo "Creating Tomcat roles $TOMCAT_ROLES and users $TOMCAT_USERS in conf/tomcat-users.xml"
+		#bundle file avoids shell word-splitting of passwords
+		echo "tomcat-users.xsl" > users-0.txt
+		echo "TOMCAT_ROLES=$TOMCAT_ROLES" >> users-0.txt
+		echo "TOMCAT_USERS=$TOMCAT_USERS" >> users-0.txt
+		echo "TOMCAT_USERS_ROLES=$TOMCAT_USERS_ROLES" >> users-0.txt
+		echo "TOMCAT_USERS_PASSWORD=$TOMCAT_USERS_PASSWORD" >> users-0.txt
+		java $XSLT_JAVA_OPTS -jar $JAR_PROC -- tomcat-users-orig.xml --bundle=users-0.txt conf/tomcat-users.xml
+		rm -f users-0.txt
+	fi
+fi
+
+#UserDatabase realm, added last so that other realms above are combined with it
+if [ "$TOMCAT_USERS_REALM_ON" = "true" -o "$TOMCAT_USERS_REALM_ON" = "yes" ]; then
+	if [ -n "$DEPLOY_CONTEXT" -a -n "$INPUT_CONTEXT" -a -e "context-userdatabase-realm.xsl" ]; then
+		echo "Creating context UserDatabase realm"
+		CONTEXT_XSL="$CONTEXT_XSL context-userdatabase-realm.xsl"
+	elif [ -e "server-userdatabase-realm.xsl" ]; then
+		echo "Creating server UserDatabase realm"
+		SERVER_XSL="$SERVER_XSL server-userdatabase-realm.xsl"
+	fi
+fi
+
 echo "generating context-based XSL: $CONTEXT_XSL"
 if [ -n "$DEPLOY_CONTEXT" -a -n "$INPUT_CONTEXT" -a -n "$CONTEXT_XSL" -a -e "$INPUT_CONTEXT" -a ! -e "conf/Catalina/localhost/$DEPLOY_CONTEXT.xml" ]; then
 	mkdir -p conf/Catalina/localhost

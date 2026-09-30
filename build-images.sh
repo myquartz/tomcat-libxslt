@@ -140,6 +140,9 @@ ADD xsl/server-dbsource.xsl /usr/local/tomcat/
 ADD xsl/server-cluster.xsl /usr/local/tomcat/
 ADD xsl/web-distributable.xsl /usr/local/tomcat/
 ADD xsl/server-port.xsl /usr/local/tomcat/
+ADD xsl/tomcat-users.xsl /usr/local/tomcat/
+ADD xsl/context-userdatabase-realm.xsl /usr/local/tomcat/
+ADD xsl/server-userdatabase-realm.xsl /usr/local/tomcat/
 
 $ADD_CDI_SCRIPT
 
@@ -170,6 +173,12 @@ ENV VALVE_ACCESS_LOG_SUFFIX=
 ENV VALVE_ACCESS_LOG_ROTATE=
 ENV VALVE_ACCESS_LOG_PATTERN=
 ENV VALVE_ACCESS_LOG_EXTENDED=
+
+ENV TOMCAT_ROLES=
+ENV TOMCAT_USERS=
+ENV TOMCAT_USERS_ROLES=
+ENV TOMCAT_USERS_PASSWORD=
+ENV TOMCAT_USERS_REALM_ON=
 
 ENV VALVE_SHOW_ERROR=
 ENV VALVE_SHOW_SERVER_INFO=
