@@ -7,7 +7,7 @@ CDILIST=$2
 docker volume rm tomcat-libxslt-src
 
 if [ "$LIST" = "" ]; then
-LIST="9-jdk11 9-jdk11-temurin 9-jdk11-corretto 9-jdk17 9-jdk17-temurin 9-jdk17-corretto 10-jdk11 10-jdk11-temurin 10-jdk11-corretto 10-jdk17 10-jdk17-temurin 11-jdk17 11-jdk21 11-jdk21-temurin"
+LIST="9-jdk11 9-jdk17 9-jdk21 9-jdk25 10-jdk11 10-jdk17 10-jdk21 10-jdk25 11-jdk17 11-jdk21 11-jdk25"
 fi
 
 if [ "$CDILIST" = "" ]; then
