@@ -30,14 +30,14 @@
 	
 	<xsl:template name="add_valve">
 		<Valve className="org.apache.catalina.valves.RemoteCIDRValve">
-            <xsl:if test="'' != $remote_addr_allow">
+            <xsl:if test="'' != $remote_cidr_allow">
                 <xsl:attribute name="allow">
-                    <xsl:value-of select="$remote_addr_allow" />
+                    <xsl:value-of select="$remote_cidr_allow" />
                 </xsl:attribute>
             </xsl:if>
-            <xsl:if test="'' != $remote_addr_deny">
+            <xsl:if test="'' != $remote_cidr_deny">
                 <xsl:attribute name="deny">
-                    <xsl:value-of select="$remote_addr_deny" />
+                    <xsl:value-of select="$remote_cidr_deny" />
                 </xsl:attribute>
             </xsl:if>
 		</Valve>

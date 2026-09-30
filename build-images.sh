@@ -15,7 +15,9 @@ CDILIST="no yes"
 fi
 
 if [ "$PUSH" = "yes" ]; then
-PUSH_OPT="--push"
+PUSH_OPT="--push --platform ${BUILD_PLATFORM:-local}"
+else
+PUSH_OPT="--load"
 fi
 
 if [ "$QUIET" != "" ]; then
@@ -273,13 +275,13 @@ fi
 echo "Image to build $IMAGE_TAG and $IMAGE_TAG1"
 
 if [ "$IMAGE_TAG1" != "" ]; then
-	echo "Using docker buildx $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local}"
+	echo "Using docker buildx $BUILDER_OPT $PUSH_OPT"
 	docker buildx ls
-	docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} $LATEST_OPT1 $LATEST_OPT2 -t "$IMAGE_TAG1" -t "$IMAGE_TAG" . || exit $?
+	docker buildx build $BUILDER_OPT $PUSH_OPT $LATEST_OPT1 $LATEST_OPT2 -t "$IMAGE_TAG1" -t "$IMAGE_TAG" . || exit $?
 elif [ "$USING_BUILDX" != "" ]; then
-	echo "Force to use docker buildx $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local}"
+	echo "Force to use docker buildx $BUILDER_OPT $PUSH_OPT"
 	docker buildx ls
-	docker buildx build $BUILDER_OPT $PUSH_OPT --platform ${BUILD_PLATFORM:-local} $LATEST_OPT1 $LATEST_OPT2 -t "$IMAGE_TAG" . || exit $?
+	docker buildx build $BUILDER_OPT $PUSH_OPT $LATEST_OPT1 $LATEST_OPT2 -t "$IMAGE_TAG" . || exit $?
 else
 	echo "Using docker build"
 	docker build -q -t "${IMAGE_TAG}" $LATEST_OPT1 $LATEST_OPT2 . || exit $?
