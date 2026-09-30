@@ -144,77 +144,32 @@ elif [ -n "$GLOBAL_DB_SOURCENAME" -a -n "$DB_PARAMS" -a -e "server-dbsource.xsl"
 	fi
 fi
 
-if [ "$RESOURCE_NAME" != "" ]; then
-	IFS=',' read -r -a RES_NAME <<< "$RESOURCE_NAME"
-	IFS=',' read -r -a RES_TYPE <<< "$RESOURCE_TYPE"
- 	IFS=',' read -r -a RES_FACTORY <<< "$RESOURCE_FACTORY"
- 	IFS=',' read -r -a RES_AUTH <<< "$RESOURCE_AUTH"
- 	IFS=',' read -r -a RES_SINGLETON <<< "$RESOURCE_SINGLETON"
-	IFS=',' read -r -a RES_SCOPE <<< "$RESOURCE_SCOPE"
- 	IFS=',' read -r -a RES_CLOSE_METHOD <<< "$RESOURCE_CLOSE_METHOD"
- 	IFS=',' read -r -a RES_DESCRIPTION <<< "$RESOURCE_DESCRIPTION"
-			
-	for key in 0 1 2 3 4; do
-		#Context Resource (RES_NAME[0,1,2,3...], RES_TYPE[0,1,2,3...], RES_FACTORY[0,1,2,3...]
-		if [ "${RES_NAME[$key]}" != "" -a "${RES_TYPE[$key]}" != "" -a "${RES_FACTORY[$key]}" != "" -a -e "context-any-resource.xsl" ]; then
-			echo "Merging context Resource for ${RES_NAME[$key]} type ${RES_TYPE[$key]}"
-	 		#output to bundle file
-			echo "context-any-resource.xsl" > resource-${key}.txt
-	 		echo "RESOURCE_NAME=${RES_NAME[$key]}" >> resource-${key}.txt
-			echo "type_className=${RES_TYPE[$key]}" >> resource-${key}.txt
-	 		echo "factory_className=${RES_FACTORY[$key]}" >> resource-${key}.txt
-	 		[ -n "${RES_AUTH[$key]}" ] && echo "auth_Application=${RES_AUTH[$key]}" >> resource-${key}.txt
-			[ -n "${RES_SCOPE[$key]}" ] && echo "scope_Unshareable=${RES_SCOPE[$key]}" >> resource-${key}.txt
-			[ -n "${RES_SINGLETON[$key]}" ] && echo "singleton=${RES_SINGLETON[$key]}" >> resource-${key}.txt
-	 		[ -n "${RES_CLOSE_METHOD[$key]}" ] && echo "closeMethod_name=${RES_CLOSE_METHOD[$key]}" >> resource-${key}.txt
-	 		[ -n "${RES_DESCRIPTION[$key]}" ] && echo "description=${RES_DESCRIPTION[$key]}" >> resource-${key}.txt
-			CONTEXT_XSL="$CONTEXT_XSL --bundle=resource-${key}.txt"
-		fi
+#Comma separated lists of any length are handled by the stylesheets (one bundle file each)
+if [ -n "$RESOURCE_NAME" -a -e "context-any-resource.xsl" ]; then
+	echo "Merging context Resource list $RESOURCE_NAME"
+	echo "context-any-resource.xsl" > resource-0.txt
+	for v in RESOURCE_NAME RESOURCE_TYPE RESOURCE_FACTORY RESOURCE_AUTH RESOURCE_SINGLETON RESOURCE_SCOPE RESOURCE_CLOSE_METHOD RESOURCE_DESCRIPTION; do
+		echo "$v=${!v}" >> resource-0.txt
 	done
+	CONTEXT_XSL="$CONTEXT_XSL --bundle=resource-0.txt"
 fi
 
-if [ "$PARAMETER_NAME" != "" ]; then
-	IFS=',' read -r -a RES_NAME <<< "$PARAMETER_NAME"
- 	IFS=',' read -r -a RES_VALUE <<< "$PARAMETER_VALUE"
- 	IFS=',' read -r -a RES_OVERRIDE <<< "$PARAMETER_OVERRIDE"
-	IFS=',' read -r -a RES_DESCRIPTION <<< "$PARAMETER_DESCRIPTION"
-			
-	for key in 0 1 2 3 4; do
-		#Context Parameter (RES_NAME[0,1,2,3...], RES_VALUE[0,1,2,3...], RES_OVERRIDE[0,1,2,3...]
-		if [ "${RES_NAME[$key]}" != "" -a "${RES_VALUE[$key]}" != "" -a -e "context-parameter.xsl" ]; then
-			echo "Merging context parameter for ${RES_NAME[$key]} description=${RES_DESCRIPTION[$key]}"
-	 		#output to bundle file
-			echo "context-parameter.xsl" > parameter-${key}.txt
-	 		echo "param_name=${RES_NAME[$key]}" >> parameter-${key}.txt
-			echo "param_value=${RES_VALUE[$key]}" >> parameter-${key}.txt
-	 		echo "param_override=${RES_OVERRIDE[$key]}" >> parameter-${key}.txt
-	 		[ -n "${RES_DESCRIPTION[$key]}" ] && echo "param_description=${RES_DESCRIPTION[$key]}" >> parameter-${key}.txt
-			CONTEXT_XSL="$CONTEXT_XSL --bundle=parameter-${key}.txt"
-		fi
+if [ -n "$PARAMETER_NAME" -a -e "context-parameter.xsl" ]; then
+	echo "Merging context parameter list $PARAMETER_NAME"
+	echo "context-parameter.xsl" > parameter-0.txt
+	for v in PARAMETER_NAME PARAMETER_VALUE PARAMETER_OVERRIDE PARAMETER_DESCRIPTION; do
+		echo "$v=${!v}" >> parameter-0.txt
 	done
+	CONTEXT_XSL="$CONTEXT_XSL --bundle=parameter-0.txt"
 fi
 
-if [ "$ENVIRONMENT_NAME" != "" ]; then
-	IFS=',' read -r -a RES_NAME <<< "$ENVIRONMENT_NAME"
- 	IFS=',' read -r -a RES_TYPE <<< "$ENVIRONMENT_TYPE"
- 	IFS=',' read -r -a RES_VALUE <<< "$ENVIRONMENT_VALUE"
- 	IFS=',' read -r -a RES_OVERRIDE <<< "$ENVIRONMENT_OVERRIDE"
-	IFS=',' read -r -a RES_DESCRIPTION <<< "$ENVIRONMENT_DESCRIPTION"
-			
-	for key in 0 1 2 3 4; do
-		#Context Parameter (RES_NAME[0,1,2,3...], RES_VALUE[0,1,2,3...], RES_OVERRIDE[0,1,2,3...]
-		if [ "${RES_NAME[$key]}" != "" -a "${RES_VALUE[$key]}" != "" -a -e "context-parameter.xsl" ]; then
-			echo "Merging context Resource for ${RES_NAME[$key]} description ${RES_DESCRIPTION[$key]}"
- 			#output to bundle file
-			echo "context-environment.xsl" > env-${key}.txt
-	 		echo "env_name=${RES_NAME[$key]}" >> env-${key}.txt
-			echo "env_value=${RES_VALUE[$key]}" >> env-${key}.txt
-	 		echo "env_type=${RES_TYPE[$key]}" >> env-${key}.txt
-	 		echo "env_override=${RES_OVERRIDE[$key]}" >> env-${key}.txt
-	 		[ -n "${RES_DESCRIPTION[$key]}" ] && echo "env_description=${RES_DESCRIPTION[$key]}" >> env-${key}.txt
-			CONTEXT_XSL="$CONTEXT_XSL --bundle=env-${key}.txt"
-		fi
+if [ -n "$ENVIRONMENT_NAME" -a -e "context-environment.xsl" ]; then
+	echo "Merging context environment list $ENVIRONMENT_NAME"
+	echo "context-environment.xsl" > env-0.txt
+	for v in ENVIRONMENT_NAME ENVIRONMENT_TYPE ENVIRONMENT_VALUE ENVIRONMENT_OVERRIDE ENVIRONMENT_DESCRIPTION; do
+		echo "$v=${!v}" >> env-0.txt
 	done
+	CONTEXT_XSL="$CONTEXT_XSL --bundle=env-0.txt"
 fi
 
 if [ -n "$VALVE_REMOTE_ADDR_ALLOW" -o -n "$VALVE_REMOTE_ADDR_DENY" ]; then			

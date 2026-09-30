@@ -192,7 +192,7 @@ Users and roles are added into `conf/tomcat-users.xml` (Tomcat's global `UserDat
 
 ### Other Context's resources
 
-The application archive (war) can be configured with other resources. Several entries can be defined by separating the values with commas (up to 5 entries), for example:
+The application archive (war) can be configured with other resources. Several entries can be defined by separating the values with commas (no limit on the number of entries), for example:
 
 #### Generic resources
 
